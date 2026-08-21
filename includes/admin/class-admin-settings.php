@@ -59,7 +59,7 @@ class Homey_Channel_Sync_Admin {
 			'beds24_access_token'            => '',
 			'beds24_access_token_expires_at' => 0,
 			'beds24_refresh_token'           => '',
-			'feature_price_sync'             => '1',
+			'feature_price_sync'             => '0',
 			'feature_booking_ingestion'      => '0',
 			'feature_promo_engine'           => '0',
 			'cron_schedule'                  => 'twicedaily',
@@ -107,6 +107,8 @@ class Homey_Channel_Sync_Admin {
 		if ( ! str_contains( $hook_suffix, 'homey-channel-sync' ) ) {
 			return;
 		}
+
+		$beds24_connected = ! empty( $this->options['beds24_access_token'] );
 
 		// Inline custom CSS for a highly polished, modern Admin UI experience
 		$custom_css = "
@@ -302,6 +304,24 @@ class Homey_Channel_Sync_Admin {
 					var url = new URL(window.location.href);
 					url.searchParams.set('status_filter', status);
 					window.location.href = url.toString();
+				});
+
+				// Handle dynamic pricing feature checkbox change to enable/disable Manual Sync button
+				$('input[name=\"feature_price_sync\"]').on('change', function() {
+					var isChecked = $(this).is(':checked');
+					var beds24Connected = " . ( $beds24_connected ? 'true' : 'false' ) . ";
+					var triggerBtn = $('#homey-sync-trigger');
+					var featureWarning = $('#homey-sync-feature-warning');
+
+					if (beds24Connected) {
+						if (isChecked) {
+							triggerBtn.prop('disabled', false);
+							featureWarning.fadeOut();
+						} else {
+							triggerBtn.prop('disabled', true);
+							featureWarning.fadeIn();
+						}
+					}
 				});
 
 				// Active Tab Selection Helper
@@ -678,13 +698,79 @@ class Homey_Channel_Sync_Admin {
 
 			update_option( 'homey_channel_sync_options', $this->options );
 
-			// Re-schedule cron job on transition
-			if ( $old_schedule !== $new_schedule ) {
+			// Re-schedule cron job on transition, or if currently unscheduled
+			if ( $old_schedule !== $new_schedule || ! wp_next_scheduled( 'homey_channel_sync_cron_hook' ) ) {
 				wp_clear_scheduled_hook( 'homey_channel_sync_cron_hook' );
 				wp_schedule_event( time() + 60, $new_schedule, 'homey_channel_sync_cron_hook' );
 			}
 
+			// If dynamic price sync is disabled, cleanly roll back listings to static defaults
+			if ( '0' === $this->options['feature_price_sync'] ) {
+				$this->revert_to_default_pricing();
+			}
+
 			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Sync Schedules and Feature toggles updated.', 'homey-channel-sync' ), 'updated' );
+		}
+	}
+
+	/**
+	 * Clean up and revert all listings' pricing fields back to their pre-plugin defaults.
+	 */
+	private function revert_to_default_pricing(): void {
+		$listings = get_posts( [
+			'post_type'      => 'listing',
+			'posts_per_page' => 100,
+			'post_status'    => 'any',
+		] );
+
+		if ( empty( $listings ) ) {
+			return;
+		}
+
+		// Temporarily unhook homey-core's recursive post-meta save action during rollback
+		$has_action_added   = has_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
+		$has_action_updated = has_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
+
+		if ( false !== $has_action_added ) {
+			remove_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+		}
+		if ( false !== $has_action_updated ) {
+			remove_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+		}
+
+		foreach ( $listings as $listing ) {
+			$listing_id = $listing->ID;
+
+			// Restore standard nightly price from backup
+			$original_night_price = get_post_meta( $listing_id, '_homey_sync_original_night_price', true );
+			if ( ! empty( $original_night_price ) ) {
+				update_post_meta( $listing_id, 'homey_night_price', $original_night_price );
+				update_post_meta( $listing_id, 'homey_nightly_price', $original_night_price );
+			}
+
+			// Restore day date price from backup
+			$original_day_date_price = get_post_meta( $listing_id, '_homey_sync_original_day_date_price', true );
+			if ( ! empty( $original_day_date_price ) ) {
+				update_post_meta( $listing_id, 'homey_day_date_price', $original_day_date_price );
+			}
+
+			// Delete all synced custom metadata keys cleanly
+			delete_post_meta( $listing_id, '_homey_sync_cm_property_id' );
+			delete_post_meta( $listing_id, '_homey_sync_cm_room_id' );
+			delete_post_meta( $listing_id, '_homey_sync_daily_rates' );
+			delete_post_meta( $listing_id, '_homey_sync_base_price_override' );
+			delete_post_meta( $listing_id, '_homey_sync_last_synced_at' );
+			delete_post_meta( $listing_id, '_homey_sync_original_night_price' );
+			delete_post_meta( $listing_id, '_homey_sync_original_day_date_price' );
+			delete_post_meta( $listing_id, 'homey_custom_period' ); // Removes custom periods calendar entirely
+		}
+
+		// Re-hook the actions
+		if ( false !== $has_action_added ) {
+			add_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
+		}
+		if ( false !== $has_action_updated ) {
+			add_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
 		}
 	}
 
@@ -872,6 +958,13 @@ class Homey_Channel_Sync_Admin {
 		$beds24_connected = ! empty( $this->options['beds24_access_token'] );
 		$auth_method      = $this->options['beds24_auth_method'] ?? 'exchange';
 
+		// Query total active listing records globally
+		$listings_count = count( get_posts( [
+			'post_type'      => 'listing',
+			'posts_per_page' => -1,
+			'post_status'    => 'publish',
+		] ) );
+
 		// Pre-fetch Beds24 live inventory in PHP to inject as a local JS object (minimizes roundtrips)
 		$pms_inventory = [];
 		if ( $beds24_connected && $active_tab === 'mappings' ) {
@@ -913,6 +1006,7 @@ class Homey_Channel_Sync_Admin {
 			<form method="post" action="">
 				<?php wp_nonce_field( 'homey_sync_save_action', 'homey_sync_nonce_field' ); ?>
 				<input type="hidden" name="action_save_settings" value="1" />
+				<input type="hidden" id="listing-count-val" value="<?php echo esc_attr( (string) $listings_count ); ?>"/>
 
 				<!-- TAB 1: Channels and Credentials -->
 				<?php if ( $active_tab === 'channels' ) : ?>
@@ -1172,7 +1266,6 @@ class Homey_Channel_Sync_Admin {
 									] );
 
 									$count = count( $listings );
-									echo '<input type="hidden" id="listing-count-val" value="' . esc_attr( (string) $count ) . '"/>';
 
 									if ( empty( $listings ) ) :
 										?>
@@ -1265,34 +1358,34 @@ class Homey_Channel_Sync_Admin {
 								<td>
 									<fieldset>
 										<label>
-											<input type="checkbox" name="feature_price_sync" value="1" <?php checked( $this->options['feature_price_sync'] ?? '1', '1' ); ?> />
+											<input type="checkbox" name="feature_price_sync" value="1" <?php checked( $this->options['feature_price_sync'] ?? '0', '1' ); ?> />
 											<strong><?php echo esc_html__( 'Enable Dynamic Daily Pricing Sync (Active)', 'homey-channel-sync' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Pull Beds24 nightly rates and overwrite default static pricing fields on Homey listings.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Pull Beds24 daily prices and apply prices to Homey nightly or daily rates.', 'homey-channel-sync' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
 							<tr class="coming-soon-card">
-								<th scope="row"><?php echo esc_html__( 'Booking Ingestion Engine', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
+								<th scope="row"><?php echo esc_html__( 'Reservation Sync', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="feature_booking_ingestion" value="1" disabled />
-											<strong><?php echo esc_html__( 'Enable Real-time Reservation Sync (Planned)', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable Real-time Bidirectional Reservation Sync (Planned)', 'homey-channel-sync' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Inject physical reservations made outside of WordPress into the core Homey booking structure to block dates automatically.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Enables a powerful bidirectional synchronization between the Homey theme and Beds24. Unlike standard static iCal syncing, this engine pushes rich reservation metadata, guest profiles, and financial amounts to Beds24, while dynamically importing external reservations to update and sync active bookings in the guest dashboard.', 'homey-channel-sync' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
 							<tr class="coming-soon-card">
-								<th scope="row"><?php echo esc_html__( 'Promo & Coupon Sync', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
+								<th scope="row"><?php echo esc_html__( 'Promo & Coupon Engine', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="feature_promo_engine" value="1" disabled />
-											<strong><?php echo esc_html__( 'Enable Direct Promo Code Sync (Planned)', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable Local Promo & Coupon Manager (Planned)', 'homey-channel-sync' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Automate import of Beds24 promo code definitions directly to Homey custom option configurations.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Enables a dedicated coupon manager, giving administrators the ability to manually generate custom coupon codes and campaign discounts that guests can apply natively at checkout. Note: Since Beds24 does not provide a direct API for promo codes, this engine manages all promo deduction calculations locally on the Homey checkout form.', 'homey-channel-sync' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
@@ -1311,6 +1404,20 @@ class Homey_Channel_Sync_Admin {
 										<option value="weekly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'weekly' ); ?>><?php echo esc_html__( 'Every 7 Days (Once Weekly)', 'homey-channel-sync' ); ?></option>
 										<option value="monthly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'monthly' ); ?>><?php echo esc_html__( 'Every 30 Days (Once Monthly)', 'homey-channel-sync' ); ?></option>
 									</select>
+
+									<?php
+									$next_run = wp_next_scheduled( 'homey_channel_sync_cron_hook' );
+									if ( $next_run ) :
+										?>
+										<p class="description" style="margin-top:10px; color:#0a4b78; font-weight:600;">
+											⏰ <?php echo esc_html__( 'Next Automated Run:', 'homey-channel-sync' ); ?> 
+											<code><?php echo esc_html( wp_date( 'l F j \a\t g:ia', $next_run ) ); ?></code>
+										</p>
+									<?php else : ?>
+										<p class="description" style="margin-top:10px; color:#d63638; font-weight:600;">
+											⚠️ <?php echo esc_html__( 'Background sync task is currently unscheduled. Connect your API and save settings to schedule.', 'homey-channel-sync' ); ?>
+										</p>
+									<?php endif; ?>
 								</td>
 							</tr>
 						</table>
@@ -1318,13 +1425,22 @@ class Homey_Channel_Sync_Admin {
 						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'Manual Sync Trigger', 'homey-channel-sync' ); ?></h3>
 						<p class="description"><?php echo esc_html__( 'Execute the full Beds24 daily pricing synchronization instantly bypassing the next automated background task run.', 'homey-channel-sync' ); ?></p>
 
+						<?php 
+						$features_active = ( '1' === ( $this->options['feature_price_sync'] ?? '0' ) );
+						$sync_btn_disabled = ( ! $beds24_connected || ! $features_active ) ? 'disabled' : '';
+						?>
 						<div style="margin-top:20px;">
-							<button type="button" id="homey-sync-trigger" class="button button-large homey-sync-btn-primary" <?php echo $beds24_connected ? '' : 'disabled'; ?>>
+							<button type="button" id="homey-sync-trigger" class="button button-large homey-sync-btn-primary" <?php echo $sync_btn_disabled; ?>>
 								🔄 <?php echo esc_html__( 'Sync Now (Force Update)', 'homey-channel-sync' ); ?>
 							</button>
-							<?php if ( ! $beds24_connected ) : ?>
-								<p class="description" style="color:#d63638; margin-top: 5px;"><?php echo esc_html__( 'Please establish API connection first to enable synchronization.', 'homey-channel-sync' ); ?></p>
-							<?php endif; ?>
+							
+							<p id="homey-sync-conn-warning" class="description" style="color:#d63638; margin-top: 5px; <?php echo ! $beds24_connected ? '' : 'display:none;'; ?>">
+								<?php echo esc_html__( 'Please establish API connection first to enable synchronization.', 'homey-channel-sync' ); ?>
+							</p>
+
+							<p id="homey-sync-feature-warning" class="description" style="color:#d63638; margin-top: 5px; <?php echo ( $beds24_connected && ! $features_active ) ? '' : 'display:none;'; ?>">
+								<?php echo esc_html__( 'Please enable at least one active synchronization feature (e.g. Dynamic Price Overrides) above to enable manual triggering.', 'homey-channel-sync' ); ?>
+							</p>
 						</div>
 
 						<div id="sync-progress-box" class="homey-sync-status-box" style="display:none; margin-top:20px;"></div>

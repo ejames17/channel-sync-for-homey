@@ -70,7 +70,7 @@ class Homey_Channel_Sync_Cron {
 		$start_time = microtime( true );
 
 		// Stop execution if price override toggle is turned off
-		$price_sync_enabled = $this->options['feature_price_sync'] ?? '1';
+		$price_sync_enabled = $this->options['feature_price_sync'] ?? '0';
 		if ( '1' !== $price_sync_enabled ) {
 			return [
 				'success' => false,
@@ -167,16 +167,65 @@ class Homey_Channel_Sync_Cron {
 				continue;
 			}
 
+			// Verify if the listing is configured for nightly/daily bookings (skip hourly, weekly, monthly, etc.)
+			$booking_type = get_post_meta( $listing_id, 'homey_booking_type', true );
+			if ( 'per_day' !== $booking_type && 'per_day_date' !== $booking_type ) {
+				continue; 
+			}
+
 			// Store nested dynamic rates array as meta
 			update_post_meta( $listing_id, '_homey_sync_daily_rates', $daily_rates );
+
+			// Merge daily rates into Homey theme's native custom periods array
+			$custom_period = get_post_meta( $listing_id, 'homey_custom_period', true );
+			if ( ! is_array( $custom_period ) ) {
+				$custom_period = [];
+			}
+
+			foreach ( $daily_rates as $date_str => $rate ) {
+				try {
+					$date_obj = new DateTime( $date_str );
+					$timestamp = $date_obj->getTimestamp();
+
+					$custom_period[ $timestamp ] = [
+						'night_price'   => $rate,
+						'weekend_price' => $rate,
+						'guest_price'   => 0.0,
+					];
+				} catch ( Exception $e ) {
+					continue;
+				}
+			}
+
+			// Update the native Homey theme custom period meta field
+			update_post_meta( $listing_id, 'homey_custom_period', $custom_period );
 
 			// Extract first day rate as listing's standard nightly base price override
 			reset( $daily_rates );
 			$first_day_rate = current( $daily_rates );
 
 			if ( false !== $first_day_rate ) {
+				// Backup original base price before first override
+				$original_price  = get_post_meta( $listing_id, 'homey_night_price', true );
+				$existing_backup = get_post_meta( $listing_id, '_homey_sync_original_night_price', true );
+				
+				if ( empty( $existing_backup ) && ! empty( $original_price ) ) {
+					update_post_meta( $listing_id, '_homey_sync_original_night_price', (string) $original_price );
+				}
+
 				// Homey Theme custom field fields
-				update_post_meta( $listing_id, 'homey_nightly_price', (string) $first_day_rate );
+				if ( 'per_day_date' === $booking_type ) {
+					$original_date_price = get_post_meta( $listing_id, 'homey_day_date_price', true );
+					$existing_date_backup = get_post_meta( $listing_id, '_homey_sync_original_day_date_price', true );
+					if ( empty( $existing_date_backup ) && ! empty( $original_date_price ) ) {
+						update_post_meta( $listing_id, '_homey_sync_original_day_date_price', (string) $original_date_price );
+					}
+
+					update_post_meta( $listing_id, 'homey_day_date_price', (string) $first_day_rate );
+				} else {
+					update_post_meta( $listing_id, 'homey_night_price', (string) $first_day_rate );
+					update_post_meta( $listing_id, 'homey_nightly_price', (string) $first_day_rate ); // Keep backup
+				}
 				// Also update a backup sync field
 				update_post_meta( $listing_id, '_homey_sync_base_price_override', (string) $first_day_rate );
 			}

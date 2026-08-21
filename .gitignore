@@ -1,0 +1,4 @@
+# Local development ignore rules
+debug.log
+.DS_Store
+screenshots/development/
