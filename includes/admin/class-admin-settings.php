@@ -410,7 +410,8 @@ class Homey_Channel_Sync_Admin {
 				var inventory = window.homeyPmsInventory || [];
 
 				function populateDropdowns() {
-					if (!inventory || inventory.length === 0) {
+					var activeInventory = window.homeyPmsInventory || inventory || [];
+					if (!activeInventory || activeInventory.length === 0) {
 						return;
 					}
 
@@ -426,7 +427,7 @@ class Homey_Channel_Sync_Admin {
 
 						// Populate Property Select Options
 						propSelect.empty().append('<option value=\"\">-- Select Property --</option>');
-						$.each(inventory, function(i, prop) {
+						$.each(activeInventory, function(i, prop) {
 							var selected = (prop.property_id === savedPropId) ? 'selected' : '';
 							propSelect.append('<option value=\"' + prop.property_id + '\" ' + selected + '>' + prop.property_name + ' (ID: ' + prop.property_id + ')</option>');
 						});
@@ -437,7 +438,7 @@ class Homey_Channel_Sync_Admin {
 							if (!propId) {
 								return;
 							}
-							var matchedProp = inventory.find(function(p) { return p.property_id === propId; });
+							var matchedProp = activeInventory.find(function(p) { return p.property_id === propId; });
 							if (matchedProp && matchedProp.rooms) {
 								$.each(matchedProp.rooms, function(j, r) {
 									var selected = (r.room_id === currentRoomId) ? 'selected' : '';
@@ -562,7 +563,8 @@ class Homey_Channel_Sync_Admin {
 				// Auto Match Listings fuzzy trigger
 				$('#homey-sync-automatch-btn').on('click', function(e) {
 					e.preventDefault();
-					if (!inventory || inventory.length === 0) {
+					var activeInventory = window.homeyPmsInventory || inventory || [];
+					if (!activeInventory || activeInventory.length === 0) {
 						alert('Beds24 Inventory is empty or connection is inactive. Cannot perform auto-matching.');
 						return;
 					}
@@ -584,7 +586,7 @@ class Homey_Channel_Sync_Admin {
 						var highestScore = 0;
 
 						// Loop through properties and nested rooms to find highest similarity
-						$.each(inventory, function(i, prop) {
+						$.each(activeInventory, function(i, prop) {
 							$.each(prop.rooms, function(j, room) {
 								var scoreRoom = stringSimilarity(title, room.room_name);
 								var combinedName = prop.property_name + ' ' + room.room_name;

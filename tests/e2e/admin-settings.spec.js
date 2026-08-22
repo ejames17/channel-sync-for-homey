@@ -86,7 +86,24 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 			// 3. Test Fuzzy Auto-Matching Algorithm Execution
 			const autoMatchBtn = page.locator('#homey-sync-automatch-btn');
 			if (await autoMatchBtn.count() > 0) {
+				// Inject mock PMS inventory data directly in window context to ensure matching success (Future-proof!)
+				await page.evaluate(() => {
+					window.homeyPmsInventory = [
+						{
+							property_id: "74130",
+							property_name: "Gorgeous Studio in Midtown Manhattan",
+							rooms: [
+								{
+									room_id: "170328",
+									room_name: "Apartment 4"
+								}
+							]
+						}
+					];
+				});
+
 				await autoMatchBtn.click();
+				
 				// Auto Match updates feedback box and matches rows
 				const statusMsg = page.locator('#automatch-status-msg');
 				await expect(statusMsg).toBeVisible();
@@ -148,7 +165,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 
 			// Assert sync CLI terminal console is shown
 			const consoleBox = page.locator('#sync-console');
-			await expect(consoleBox).toBeVisible();
+			await expect(page.locator('#sync-console')).toBeVisible();
 			await expect(consoleBox).toContainText('[INFO]');
 		}
 	});
