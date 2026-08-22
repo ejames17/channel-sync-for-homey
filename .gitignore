@@ -2,3 +2,11 @@
 debug.log
 .DS_Store
 screenshots/development/
+
+# Playwright E2E secure cache & report folders
+.env
+playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

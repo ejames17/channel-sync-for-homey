@@ -1,0 +1,13 @@
+{
+  "name": "homey-channel-sync-e2e",
+  "version": "1.0.0",
+  "description": "Playwright End-to-End Testing Suite for Homey Channel Sync WordPress Plugin.",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
