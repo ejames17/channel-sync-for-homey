@@ -117,6 +117,8 @@ final class Homey_Channel_Sync {
 				$class_path = 'includes/admin/class-admin-settings.php';
 			} elseif ( 'Homey_Channel_Sync_Cron' === $class_name ) {
 				$class_path = 'includes/core/class-cron-manager.php';
+			} elseif ( 'Homey_Sync_Logger' === $class_name ) {
+				$class_path = 'includes/core/class-logger.php';
 			}
 
 			if ( ! empty( $class_path ) ) {
@@ -182,6 +184,7 @@ final class Homey_Channel_Sync {
 				'feature_booking_ingestion'      => '0',
 				'feature_promo_engine'           => '0',
 				'cron_schedule'                  => 'twicedaily',
+				'enable_debug_log'               => '0',
 			];
 			update_option( 'homey_channel_sync_options', $default_settings );
 		}
@@ -276,9 +279,18 @@ final class Homey_Channel_Sync {
 				pointer-events: none;
 			}
 			.single-listing-calendar-wrap li.day-booked .homey-pms-calendar-price,
-			.single-listing-calendar-wrap li.day-status-booked .homey-pms-calendar-price {
-				color: #8c8f94 !important;
-				opacity: 0.5;
+			.single-listing-calendar-wrap li.day-status-booked .homey-pms-calendar-price,
+			.single-listing-calendar-wrap li.day-pending .homey-pms-calendar-price,
+			.single-listing-calendar-wrap li.day-status-pending .homey-pms-calendar-price {
+				display: none !important;
+			}
+			/* Visual Override: Force yellowish Pending days to display as fully Booked (soft red background) */
+			.single-listing-calendar-wrap li.day-pending,
+			.single-listing-calendar-wrap li.day-status-pending {
+				background-color: #fca5a5 !important; /* Soft red background to match booked */
+				color: #991b1b !important;
+				text-decoration: line-through !important;
+				pointer-events: none !important; /* Prevent clicks/selection */
 			}
 			.homey-pms-daily-breakdown-box {
 				margin: 12px 0 8px 0;
@@ -359,6 +371,11 @@ final class Homey_Channel_Sync {
 						$('.single-listing-calendar-wrap li[data-timestamp]').each(function() {
 							var li = $(this);
 							var timestamp = li.attr('data-timestamp');
+							
+							// Skip pricing overlays on unavailable, booked, or pending days
+							if (li.hasClass('day-booked') || li.hasClass('day-status-booked') || li.hasClass('day-pending') || li.hasClass('day-status-pending')) {
+								return;
+							}
 							
 							if (li.find('.homey-pms-calendar-price').length === 0 && customPeriod[timestamp]) {
 								var price = customPeriod[timestamp]['night_price'];

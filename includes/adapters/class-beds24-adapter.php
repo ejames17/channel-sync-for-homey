@@ -40,8 +40,11 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 	 * @return bool True if connection is successful.
 	 */
 	public function test_connection( array $credentials ): bool {
+		Homey_Sync_Logger::log( 'info', 'Initiating connection test to Beds24 API v2 properties...' );
+
 		if ( ! $this->validate_credentials( $credentials ) ) {
 			$this->last_error = esc_html__( 'Missing access token in credentials array.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Connection test aborted: ' . $this->last_error );
 			return false;
 		}
 
@@ -57,6 +60,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( is_wp_error( $response ) ) {
 			$this->last_error = $response->get_error_message();
+			Homey_Sync_Logger::log( 'error', 'Beds24 API HTTP Connection Error during test: ' . $this->last_error );
 			return false;
 		}
 
@@ -64,9 +68,11 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( 200 !== $code ) {
 			$this->last_error = $this->parse_api_error( $response );
+			Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API returned non-200 code %1$d during test: %2$s', $code, $this->last_error ) );
 			return false;
 		}
 
+		Homey_Sync_Logger::log( 'info', 'Connection test to Beds24 API v2 properties succeeded.' );
 		return true;
 	}
 
@@ -87,6 +93,8 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 	 * @return array{token: string, expiresIn: int, refreshToken: string}|false Token details array on success, false on failure.
 	 */
 	public function exchange_invite_code( string $invite_code ): array|bool {
+		Homey_Sync_Logger::log( 'info', 'Exchanging manual Invite Code for dynamic access and refresh tokens...' );
+
 		$response = wp_safe_remote_get( 'https://api.beds24.com/v2/authentication/setup', [
 			'headers' => [
 				'code'   => trim( $invite_code ),
@@ -97,6 +105,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( is_wp_error( $response ) ) {
 			$this->last_error = $response->get_error_message();
+			Homey_Sync_Logger::log( 'error', 'Beds24 API connection error during setup exchange: ' . $this->last_error );
 			return false;
 		}
 
@@ -104,6 +113,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( 200 !== $code ) {
 			$this->last_error = $this->parse_api_error( $response );
+			Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API setup exchange returned %1$d: %2$s', $code, $this->last_error ) );
 			return false;
 		}
 
@@ -111,9 +121,11 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 		$data = json_decode( $body, true );
 		if ( ! is_array( $data ) || empty( $data['token'] ) ) {
 			$this->last_error = esc_html__( 'Invalid response format from Beds24 server.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Beds24 API returned invalid response format: ' . $body );
 			return false;
 		}
 
+		Homey_Sync_Logger::log( 'info', 'Invite Code exchanged successfully for dynamic tokens.' );
 		return [
 			'token'        => (string) $data['token'],
 			'expiresIn'    => (int) ( $data['expiresIn'] ?? 86400 ),
@@ -128,6 +140,8 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 	 * @return array{token: string, expiresIn: int}|false Token details array on success, false on failure.
 	 */
 	public function refresh_access_token( string $refresh_token ): array|bool {
+		Homey_Sync_Logger::log( 'info', 'Executing self-healing token refresh sequence...' );
+
 		$response = wp_safe_remote_get( 'https://api.beds24.com/v2/authentication/token', [
 			'headers' => [
 				'refreshToken' => trim( $refresh_token ),
@@ -138,6 +152,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( is_wp_error( $response ) ) {
 			$this->last_error = $response->get_error_message();
+			Homey_Sync_Logger::log( 'error', 'Beds24 API connection error during token refresh: ' . $this->last_error );
 			return false;
 		}
 
@@ -145,6 +160,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( 200 !== $code ) {
 			$this->last_error = $this->parse_api_error( $response );
+			Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API token refresh returned %1$d: %2$s', $code, $this->last_error ) );
 			return false;
 		}
 
@@ -152,9 +168,11 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 		$data = json_decode( $body, true );
 		if ( ! is_array( $data ) || empty( $data['token'] ) ) {
 			$this->last_error = esc_html__( 'Invalid refresh response format from Beds24 server.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Beds24 API returned invalid token refresh format: ' . $body );
 			return false;
 		}
 
+		Homey_Sync_Logger::log( 'info', 'Token refresh successful. New access token cached.' );
 		return [
 			'token'     => (string) $data['token'],
 			'expiresIn' => (int) ( $data['expiresIn'] ?? 86400 ),
@@ -181,6 +199,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 		// Refresh if expired or expiring within 5 minutes (300 seconds)
 		if ( empty( $access_token ) || time() >= ( $expires_at - 300 ) ) {
 			if ( empty( $refresh_token ) ) {
+				Homey_Sync_Logger::log( 'warning', 'Token refresh aborted: Refresh token is missing.' );
 				return '';
 			}
 
@@ -196,6 +215,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 				return $new_token;
 			} else {
 				// Refresh failed, invalidate token fields
+				Homey_Sync_Logger::log( 'error', 'Self-healing token refresh failed. Disconnecting credentials.' );
 				$options['beds24_access_token']            = '';
 				$options['beds24_access_token_expires_at'] = 0;
 				$options['beds24_refresh_token']           = '';
@@ -251,12 +271,16 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 		if ( ! $force_refresh ) {
 			$cached = get_transient( 'homey_sync_pms_inventory' );
 			if ( is_array( $cached ) ) {
+				Homey_Sync_Logger::log( 'debug', 'Reading PMS inventory structures from transient cache (homey_sync_pms_inventory).' );
 				return $cached;
 			}
 		}
 
+		Homey_Sync_Logger::log( 'info', 'Transient cache missed or refreshed. Fetching live PMS inventory from Beds24 /properties endpoint...' );
+
 		if ( ! $this->validate_credentials( $credentials ) ) {
 			$this->last_error = esc_html__( 'Missing access token in credentials array.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Inventory fetch aborted: ' . $this->last_error );
 			return false;
 		}
 
@@ -272,6 +296,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( is_wp_error( $response ) ) {
 			$this->last_error = $response->get_error_message();
+			Homey_Sync_Logger::log( 'error', 'Beds24 API HTTP connection error during inventory fetch: ' . $this->last_error );
 			return false;
 		}
 
@@ -279,6 +304,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( 200 !== $code ) {
 			$this->last_error = $this->parse_api_error( $response );
+			Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API returned non-200 code %1$d during inventory fetch: %2$s', $code, $this->last_error ) );
 			return false;
 		}
 
@@ -287,6 +313,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( ! is_array( $data ) ) {
 			$this->last_error = esc_html__( 'Invalid JSON response from Beds24.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Beds24 API returned invalid JSON during inventory fetch: ' . $body );
 			return false;
 		}
 
@@ -295,6 +322,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		if ( ! is_array( $raw_properties ) ) {
 			$this->last_error = esc_html__( 'Properties collection is empty or invalid.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Properties collection array is empty or invalid.' );
 			return false;
 		}
 
@@ -343,6 +371,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 		// Cache structural array for 1 hour
 		set_transient( 'homey_sync_pms_inventory', $structured, HOUR_IN_SECONDS );
+		Homey_Sync_Logger::log( 'info', sprintf( 'Successfully fetched %d properties from Beds24 and cached in transients.', count( $structured ) ) );
 
 		return $structured;
 	}
@@ -361,11 +390,14 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 			return [];
 		}
 
+		Homey_Sync_Logger::log( 'info', sprintf( 'Starting Beds24 rates sync cycle for %d mapped listings...', count( $room_mappings ) ) );
+
 		$options      = get_option( 'homey_channel_sync_options', [] );
 		$access_token = $options['beds24_access_token'] ?? '';
 
 		if ( empty( $access_token ) ) {
 			$this->last_error = esc_html__( 'No valid Beds24 access token found in settings.', 'homey-channel-sync' );
+			Homey_Sync_Logger::log( 'error', 'Rates sync aborted: ' . $this->last_error );
 			return [];
 		}
 
@@ -379,6 +411,8 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 			if ( empty( $room_id ) ) {
 				continue;
 			}
+
+			Homey_Sync_Logger::log( 'debug', sprintf( 'Querying Beds24 rates calendar for Listing ID %1$d (Room ID %2$s) from %3$s to %4$s', $listing_id, $room_id, $from, $to ) );
 
 			// Query Beds24 V2 Calendar Endpoint for this specific Room ID
 			$url = add_query_arg( [
@@ -397,13 +431,15 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 			] );
 
 			if ( is_wp_error( $response ) ) {
-				error_log( 'Homey Channel Sync API Connection Error: ' . $response->get_error_message() );
+				$this->last_error = $response->get_error_message();
+				Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API HTTP connection error for Room ID %1$s: %2$s', $room_id, $this->last_error ) );
 				continue;
 			}
 
 			$code = wp_remote_retrieve_response_code( $response );
 			if ( 200 !== $code ) {
-				error_log( 'Homey Channel Sync API Response Fail code ' . $code . ': ' . wp_remote_retrieve_body( $response ) );
+				$this->last_error = $this->parse_api_error( $response );
+				Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API calendar query returned %1$d for Room ID %2$s: %3$s', $code, $room_id, $this->last_error ) );
 				continue;
 			}
 
@@ -411,11 +447,13 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 			$data = json_decode( $body, true );
 
 			if ( ! is_array( $data ) || ! ( $data['success'] ?? false ) ) {
+				Homey_Sync_Logger::log( 'error', sprintf( 'Beds24 API returned unsuccessful calendar data for Room ID %1$s: %2$s', $room_id, $body ) );
 				continue;
 			}
 
 			$raw_calendar_items = $data['data'] ?? [];
 			if ( ! is_array( $raw_calendar_items ) || empty( $raw_calendar_items ) ) {
+				Homey_Sync_Logger::log( 'warning', sprintf( 'No calendar list entries returned from Beds24 API for Room ID %1$s.', $room_id ) );
 				continue;
 			}
 
@@ -455,12 +493,13 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 
 			if ( ! empty( $daily_pricing ) ) {
 				$results[ (string) $listing_id ] = $daily_pricing;
+				Homey_Sync_Logger::log( 'info', sprintf( 'Successfully fetched and unpacked %1$d days of pricing for Listing ID %2$d.', count( $daily_pricing ), $listing_id ) );
 			}
 		}
 
 		// Fallback: If live API returns empty results (e.g. offline/timeout), use mock pricing
 		if ( empty( $results ) ) {
-			error_log( 'Homey Channel Sync: Live API returned empty. Falling back to local mock rates.' );
+			Homey_Sync_Logger::log( 'warning', 'Beds24 live sync returned empty results. Triggering local mock rates fallback.' );
 			$results = $this->get_mock_rates_fallback( $room_mappings );
 		}
 

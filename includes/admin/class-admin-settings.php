@@ -44,6 +44,7 @@ class Homey_Channel_Sync_Admin {
 		add_action( 'wp_ajax_homey_sync_connect_longlife', [ $this, 'ajax_connect_longlife' ] );
 		add_action( 'wp_ajax_homey_sync_disconnect', [ $this, 'ajax_disconnect' ] );
 		add_action( 'wp_ajax_homey_sync_fetch_pms_inventory', [ $this, 'ajax_fetch_pms_inventory' ] );
+		add_action( 'wp_ajax_homey_sync_clear_logs', [ $this, 'ajax_clear_logs' ] );
 	}
 
 	/**
@@ -63,6 +64,7 @@ class Homey_Channel_Sync_Admin {
 			'feature_booking_ingestion'      => '0',
 			'feature_promo_engine'           => '0',
 			'cron_schedule'                  => 'twicedaily',
+			'enable_debug_log'               => '0',
 		];
 	}
 
@@ -614,6 +616,41 @@ class Homey_Channel_Sync_Admin {
 
 					statusMsg.removeClass('homey-sync-status-info').addClass('homey-sync-status-success').html('Fuzzy auto-matching completed successfully! Auto-matched ' + matchedCount + ' listings with confidence > 70%. Please click \"Save Settings\" below to persist changes.').fadeIn();
 				});
+
+				// ==========================================
+				// DEBUG LOGS TAB AJAX HANDLERS
+				// ==========================================
+				$('#homey-sync-clear-logs-btn').on('click', function(e) {
+					e.preventDefault();
+					if (!confirm('Are you sure you want to empty the active monthly log file?')) {
+						return;
+					}
+					var button = $(this);
+					var statusBox = $('#automatch-status-msg');
+					var loader = $('.test-connection-loader');
+					var logConsole = $('#homey-sync-log-viewer-console');
+
+					button.prop('disabled', true);
+					loader.show();
+					statusBox.hide().removeClass('homey-sync-status-success homey-sync-status-error');
+
+					var data = {
+						action: 'homey_sync_clear_logs',
+						security: '" . wp_create_nonce( 'homey_sync_clear_logs_nonce' ) . "'
+					};
+
+					$.post(ajaxurl, data, function(response) {
+						loader.hide();
+						button.prop('disabled', false);
+
+						if (response.success) {
+							statusBox.addClass('homey-sync-status-success').html(response.data.message).fadeIn();
+							logConsole.html('No logs recorded yet for this month.');
+						} else {
+							statusBox.addClass('homey-sync-status-error').html('Error: ' + response.data.message).fadeIn();
+						}
+					});
+				});
 			});
 		";
 		wp_register_script( 'homey-sync-admin-js', false, [ 'jquery' ], false, true );
@@ -626,6 +663,36 @@ class Homey_Channel_Sync_Admin {
 	 */
 	public function register_settings_and_save(): void {
 		register_setting( 'homey_channel_sync_group', 'homey_channel_sync_options' );
+
+		$settings_url = admin_url( 'admin.php?page=homey-channel-sync' );
+
+		// Process Log Download Request on admin_init (defensive security checks)
+		if ( isset( $_GET['action_download_logs'] ) && '1' === $_GET['action_download_logs'] ) {
+			if ( ! isset( $_GET['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['security'] ) ), 'homey_sync_download_logs_nonce' ) ) {
+				wp_die( esc_html__( 'Nonce verification failed.', 'homey-channel-sync' ) );
+			}
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'Unauthorized access.', 'homey-channel-sync' ) );
+			}
+
+			$logger   = Homey_Sync_Logger::get_instance();
+			$log_file = $logger->get_log_directory() . 'sync-' . current_time( 'Y-m' ) . '.log';
+
+			if ( file_exists( $log_file ) ) {
+				header( 'Content-Description: File Transfer' );
+				header( 'Content-Type: text/plain' );
+				header( 'Content-Disposition: attachment; filename="' . basename( $log_file ) . '"' );
+				header( 'Expires: 0' );
+				header( 'Cache-Control: must-revalidate' );
+				header( 'Pragma: public' );
+				header( 'Content-Length: ' . filesize( $log_file ) );
+				readfile( $log_file );
+				exit;
+			} else {
+				wp_die( esc_html__( 'Active monthly log file is empty or does not exist.', 'homey-channel-sync' ) );
+			}
+		}
 
 		// Process manual setting form submission
 		if ( ! isset( $_POST['homey_sync_nonce_field'] ) || ! isset( $_POST['action_save_settings'] ) ) {
@@ -710,6 +777,12 @@ class Homey_Channel_Sync_Admin {
 			}
 
 			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Sync Schedules and Feature toggles updated.', 'homey-channel-sync' ), 'updated' );
+		}
+
+		if ( $current_tab === 'logs' ) {
+			$this->options['enable_debug_log'] = isset( $_POST['enable_debug_log'] ) ? '1' : '0';
+			update_option( 'homey_channel_sync_options', $this->options );
+			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Logging configuration saved successfully.', 'homey-channel-sync' ), 'updated' );
 		}
 	}
 
@@ -945,6 +1018,26 @@ class Homey_Channel_Sync_Admin {
 	}
 
 	/**
+	 * AJAX Action callback to clear/empty the active monthly log file.
+	 */
+	public function ajax_clear_logs(): void {
+		check_ajax_referer( 'homey_sync_clear_logs_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+		}
+
+		$logger  = Homey_Sync_Logger::get_instance();
+		$success = $logger->clear_current_log();
+
+		if ( $success ) {
+			wp_send_json_success( [ 'message' => esc_html__( 'Active monthly log file emptied successfully!', 'homey-channel-sync' ) ] );
+		} else {
+			wp_send_json_error( [ 'message' => esc_html__( 'Failed to empty log file. Please check folder permissions.', 'homey-channel-sync' ) ] );
+		}
+	}
+
+	/**
 	 * Renders the primary Tabbed Settings interface.
 	 */
 	public function render_settings_page(): void {
@@ -1000,6 +1093,9 @@ class Homey_Channel_Sync_Admin {
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'settings', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">
 					<?php echo esc_html__( '3. Sync Configuration', 'homey-channel-sync' ); ?>
+				</a>
+				<a href="<?php echo esc_url( add_query_arg( 'tab', 'logs', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'logs' ? 'nav-tab-active' : ''; ?>">
+					<?php echo esc_html__( '4. Debug Logs', 'homey-channel-sync' ); ?>
 				</a>
 			</h2>
 
@@ -1298,7 +1394,9 @@ class Homey_Channel_Sync_Admin {
 											<tr class="homey-pms-row" data-listing-id="<?php echo esc_attr( (string) $listing_id ); ?>">
 												<td><?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 												<td>
-													<strong class="homey-listing-title"><?php echo esc_html( $listing->post_title ); ?></strong>
+													<a href="<?php echo esc_url( get_permalink( $listing_id ) ); ?>" target="_blank" rel="noopener" style="text-decoration:none; color:#1d2327;" onmouseover="this.style.color='#f15a24';" onmouseout="this.style.color='#1d2327';">
+														<strong class="homey-listing-title"><?php echo esc_html( $listing->post_title ); ?> 🔗</strong>
+													</a>
 													<span class="mapping-match-badge none"></span>
 													<br/>
 													<span class="description">ID: <?php echo esc_html( (string) $listing_id ); ?> | Status: <code><?php echo esc_html( get_post_status( $listing_id ) ); ?></code></span>
@@ -1445,6 +1543,57 @@ class Homey_Channel_Sync_Admin {
 
 						<div id="sync-progress-box" class="homey-sync-status-box" style="display:none; margin-top:20px;"></div>
 						<pre id="sync-console" class="sync-progress-console"></pre>
+					</div>
+				<?php endif; ?>
+
+				<!-- TAB 4: Debug Logs -->
+				<?php if ( $active_tab === 'logs' ) : 
+					$logger = Homey_Sync_Logger::get_instance();
+					$log_content = $logger->read_current_log();
+					$download_url = add_query_arg( [
+						'action_download_logs' => '1',
+						'security'             => wp_create_nonce( 'homey_sync_download_logs_nonce' ),
+					], $settings_url );
+				?>
+					<div class="homey-sync-card">
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'API & Sync Debug Logging', 'homey-channel-sync' ); ?></h3>
+						<p class="description">
+							<?php echo esc_html__( 'Track API requests, payload responses, transient states, and cron telemetry for Beds24 PMS integration.', 'homey-channel-sync' ); ?>
+						</p>
+
+						<table class="form-table" style="margin-top:15px; margin-bottom: 25px;">
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Logging Toggle', 'homey-channel-sync' ); ?></th>
+								<td>
+									<fieldset>
+										<label>
+											<input type="checkbox" name="enable_debug_log" value="1" <?php checked( $this->options['enable_debug_log'] ?? '0', '1' ); ?> />
+											<strong><?php echo esc_html__( 'Enable API & Sync Debug Logging', 'homey-channel-sync' ); ?></strong>
+										</label>
+										<p class="description"><?php echo esc_html__( 'Only writes non-error synchronization events and detailed API telemetries to disk when checked.', 'homey-channel-sync' ); ?></p>
+									</fieldset>
+								</td>
+							</tr>
+						</table>
+
+						<div class="homey-sync-actions-row" style="margin-bottom: 10px;">
+							<div class="homey-sync-actions-left">
+								<h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #2c3338;"><?php echo esc_html__( 'Active Monthly Log File Content:', 'homey-channel-sync' ); ?></h4>
+							</div>
+							<div class="homey-sync-actions-right">
+								<a href="<?php echo esc_url( $download_url ); ?>" class="button button-secondary">
+									📥 <?php echo esc_html__( 'Download Log File', 'homey-channel-sync' ); ?>
+								</a>
+								<button type="button" id="homey-sync-clear-logs-btn" class="button button-secondary" style="color: #d63638; border-color: #d63638;">
+									🗑️ <?php echo esc_html__( 'Clear Log File', 'homey-channel-sync' ); ?>
+								</button>
+								<span class="spinner test-connection-loader" style="margin:0;"></span>
+							</div>
+						</div>
+
+						<div id="automatch-status-msg" class="homey-sync-status-box" style="display:none; margin: 15px 0;"></div>
+
+						<pre id="homey-sync-log-viewer-console" style="background: #1e1e1e; color: #f1f1f1; font-family: monospace; padding: 18px; border-radius: 4px; max-height: 400px; overflow-y: auto; font-size: 12px; line-height: 1.5; border: 1px solid #333; margin-top: 10px;"><?php echo esc_html( $log_content ); ?></pre>
 					</div>
 				<?php endif; ?>
 
