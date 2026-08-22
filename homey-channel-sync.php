@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/ejames17/homey-channel-sync
  * Description:       Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
  * Version:           1.0.0
- * Author:            Gemini CLI
+ * Author:            ejames17
  * License:           GPL-2.0-or-later
  * Text Domain:       homey-channel-sync
  * Domain Path:       /languages
