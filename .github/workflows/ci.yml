@@ -57,11 +57,8 @@ jobs:
         # Set up Twenty Twenty-Three as active fallback theme
         npx @wordpress/env run cli wp theme install twentytwentythree --activate
         
-        # Write persistent stubs to the active theme's functions.php to handle post types and options on every request
-        npx @wordpress/env run cli wp eval '
-          $stubs = "\n\nif (!function_exists(\"homey_option\")) { function homey_option(\$option) { return \"per_day\"; } }\nadd_action(\"init\", function() { if (!post_type_exists(\"listing\")) { register_post_type(\"listing\", [ \"public\" => true, \"has_archive\" => true, \"label\" => \"Listings\" ]); } });\n";
-          file_put_contents(\"/var/www/html/wp-content/themes/twentytwentythree/functions.php\", $stubs, FILE_APPEND);
-        '
+        # Require our secure local stubs file dynamically inside the active theme's functions.php
+        npx @wordpress/env run cli "echo \"require_once '/var/www/html/wp-content/plugins/homey-channel-sync/tests/gha-stubs.php';\" >> /var/www/html/wp-content/themes/twentytwentythree/functions.php"
 
     - name: Seed E2E Database Fixtures
       run: |
