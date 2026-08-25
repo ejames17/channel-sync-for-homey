@@ -97,7 +97,7 @@ jobs:
       env:
         WP_BASE_URL: http://localhost:8888
         WP_ADMIN_USER: admin
-        WP_ADMIN_PASS: admin
+        WP_ADMIN_PASS: password
         WP_PATH: .
       run: npm run test:e2e
 
