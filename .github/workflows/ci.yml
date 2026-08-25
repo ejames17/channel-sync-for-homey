@@ -68,15 +68,26 @@ jobs:
             register_post_type("listing", ["public" => true]);
           }
           if (!get_post(6759)) {
-            wp_insert_post([
+            $id = wp_insert_post([
               "import_id" => 6759,
               "post_title" => "Gorgeous Studio in Midtown Manhattan",
               "post_type" => "listing",
               "post_status" => "publish",
               "post_author" => 1
             ]);
+            if (is_wp_error($id)) {
+              echo "INSERT ERROR: " . $id->get_error_message();
+            } else {
+              echo "INSERT SUCCESS: Post created with ID " . $id;
+            }
+          } else {
+            echo "INSERT SKIP: Post 6759 already exists.";
           }
         '
+        
+        # Diagnostics: Verify post insertion succeeded
+        npx @wordpress/env run cli wp post get 6759
+        npx @wordpress/env run cli wp post list --post_type=listing
         
         # Populate mapping metadata
         npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_property_id 74130
