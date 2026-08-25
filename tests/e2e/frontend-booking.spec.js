@@ -86,7 +86,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				update_post_meta(6759, 'homey_nightly_price', '100');
 
 				// Dynamically seed mock HTML content into Listing 6759 post_content to replicate theme single layout on clean fallback theme requests
-				$mockHtml = "<!-- MOCK DOM --> " .
+				$mockHtml = "<!-- wp:html -->" .
 					"<div class=\\"single-listing-calendar-wrap\\">" .
 						"<ul>" .
 							"<li data-timestamp=\\"${timestamp1}\\">1</li>" .
@@ -110,9 +110,10 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 							"<li class=\\"homey_price_first\\">Nights</li>" .
 						"</div>" .
 						"<button id=\\"instance_booking\\" class=\\"btn-booking\\">Book Now</button>" .
-					"</div>";
+					"</div>" .
+					"<!-- /wp:html -->";
 
-				$wpdb->update($wpdb->posts, ["post_content" => $mockHtml], ["ID" => 6759]);
+				wp_update_post(["ID" => 6759, "post_content" => $mockHtml]);
 			`;
 			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
 			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
