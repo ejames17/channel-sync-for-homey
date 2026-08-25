@@ -3,36 +3,37 @@ import { execSync } from 'child_process';
 
 const wpPrefix = process.env.WP_PATH_PREFIX || '';
 
-// Compute dynamic rolling future dates to prevent hardcoded past-date blocking
+// Compute dynamic rolling future dates strictly in UTC (100% timezone-independent!)
 const today = new Date();
+const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
 
-// 1. Check-In Date (Today + 30 Days)
-const future1 = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
-const f1_y = future1.getFullYear();
-const f1_m = String(future1.getMonth() + 1).padStart(2, '0');
-const f1_d = String(future1.getDate()).padStart(2, '0');
+// 1. Check-In Date (Today UTC + 30 Days)
+const future1 = new Date(todayUtc.getTime() + (30 * 24 * 60 * 60 * 1000));
+const f1_y = future1.getUTCFullYear();
+const f1_m = String(future1.getUTCMonth() + 1).padStart(2, '0');
+const f1_d = String(future1.getUTCDate()).padStart(2, '0');
 const checkInDate = `${f1_y}-${f1_m}-${f1_d}`;
-const timestamp1 = Math.floor(Date.UTC(f1_y, future1.getMonth(), future1.getDate()) / 1000);
+const timestamp1 = Math.floor(future1.getTime() / 1000);
 
-// 2. Middle Night Date (Today + 31 Days)
-const future2 = new Date(today.getTime() + (31 * 24 * 60 * 60 * 1000));
-const f2_y = future2.getFullYear();
-const f2_m = String(future2.getMonth() + 1).padStart(2, '0');
-const f2_d = String(future2.getDate()).padStart(2, '0');
-const timestamp2 = Math.floor(Date.UTC(f2_y, future2.getMonth(), future2.getDate()) / 1000);
+// 2. Middle Night Date (Today UTC + 31 Days)
+const future2 = new Date(todayUtc.getTime() + (31 * 24 * 60 * 60 * 1000));
+const f2_y = future2.getUTCFullYear();
+const f2_m = String(future2.getUTCMonth() + 1).padStart(2, '0');
+const f2_d = String(future2.getUTCDate()).padStart(2, '0');
+const timestamp2 = Math.floor(future2.getTime() / 1000);
 
-// 3. Check-Out Date (Today + 32 Days)
-const future3 = new Date(today.getTime() + (32 * 24 * 60 * 60 * 1000));
-const f3_y = future3.getFullYear();
-const f3_m = String(future3.getMonth() + 1).padStart(2, '0');
-const f3_d = String(future3.getDate()).padStart(2, '0');
+// 3. Check-Out Date (Today UTC + 32 Days)
+const future3 = new Date(todayUtc.getTime() + (32 * 24 * 60 * 60 * 1000));
+const f3_y = future3.getUTCFullYear();
+const f3_m = String(future3.getUTCMonth() + 1).padStart(2, '0');
+const f3_d = String(future3.getUTCDate()).padStart(2, '0');
 const checkOutDate = `${f3_y}-${f3_m}-${f3_d}`;
-const timestamp3 = Math.floor(Date.UTC(f3_y, future3.getMonth(), future3.getDate()) / 1000);
+const timestamp3 = Math.floor(future3.getTime() / 1000);
 
 // Define short friendly month names to assert dynamic labels
 const shortMonths = ['Jan', 'Feb', 'March', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-const monthLabel1 = shortMonths[future1.getMonth()];
-const monthLabel2 = shortMonths[future2.getMonth()];
+const monthLabel1 = shortMonths[future1.getUTCMonth()];
+const monthLabel2 = shortMonths[future2.getUTCMonth()];
 
 /**
  * End-to-End Test Suite for Homey Front-End Guest Booking and Dynamic Pricing overlays.
