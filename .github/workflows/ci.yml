@@ -1,0 +1,97 @@
+name: CI Suite
+
+on:
+  push:
+    branches: [ main, master, development ]
+  pull_request:
+    branches: [ main, master, development ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mysqli, pdo, gd, zip
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Node Dependencies
+      run: npm ci
+
+    - name: Run PHP Linting
+      run: |
+        find . -name "*.php" ! -path "./node_modules/*" -exec php -l {} \;
+
+    - name: Run Node API Tests (Native Runner)
+      run: npm run test:api
+
+    - name: Start Docker Services & Headless WordPress
+      run: |
+        # Configure wp-env to run dynamically on port 8888 and mount current plugin
+        echo '{"plugins": ["."], "core": "WordPress/WordPress#6.3"}' > .wp-env.json
+        npx @wordpress/env start --update
+
+    - name: Inject Stub Theme Dependencies
+      run: |
+        # Set up Twenty Twenty-Three as active fallback theme
+        npx @wordpress/env run cli wp theme install twentytwentythree --activate
+        
+        # Inject stub theme helpers so plugin hooks execute without FATAL exceptions
+        npx @wordpress/env run cli wp eval '
+          if (!function_exists("homey_option")) {
+            function homey_option($option) { return "per_day"; }
+          }
+        '
+
+    - name: Seed E2E Database Fixtures
+      run: |
+        # Generate listing post type 6759
+        npx @wordpress/env run cli wp post create --post_type=listing --post_status=publish --post_title="Gorgeous Studio in Midtown Manhattan" --ID=6759
+        
+        # Populate mapping metadata
+        npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_property_id 74130
+        npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_room_id 170328
+        
+        # Create standard admin user to bypass global login gate
+        npx @wordpress/env run cli wp user create admin admin@example.com --role=administrator --user_pass=admin || true
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run E2E Playwright Tests
+      env:
+        WP_BASE_URL: http://localhost:8888
+        WP_ADMIN_USER: admin
+        WP_ADMIN_PASS: admin
+        WP_PATH: .
+      run: npm run test:e2e
+
+    - name: Upload Playwright Reports & Screenshots on Failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: |
+          playwright-report/
+          test-results/

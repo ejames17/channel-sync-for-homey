@@ -1,4 +1,8 @@
 # homey-channel-sync
+
+[![CI Status (Master)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml)
+[![CI Status (Development)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml)
+
 Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
 
 **Homey Channel Sync** connects the [Homey Booking Theme]([https://favethemes.com/](https://themeforest.net/item/homey-booking-wordpress-theme/23338013) with Property Management Systems (PMS) like Beds24 to enable automated dynamic daily pricing, rate syncs, and real-time reservation management.
