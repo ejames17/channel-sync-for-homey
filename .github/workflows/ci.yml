@@ -88,6 +88,7 @@ jobs:
         # Diagnostics: Verify post insertion succeeded
         npx @wordpress/env run cli wp post get 6759
         npx @wordpress/env run cli wp post list --post_type=listing
+        npx @wordpress/env run cli wp post meta get 6759 homey_custom_period || echo "Meta key empty!"
         
         # Populate mapping metadata
         npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_property_id 74130

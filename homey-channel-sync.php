@@ -345,7 +345,7 @@ final class Homey_Channel_Sync {
 
 			jQuery(document).ready(function($) {
 				var rawPeriods = window.homeyCustomPeriodPrice || {};
-				var listingId = $('.homey-pms-row').first().data('listing-id') || $('#listing_id').val() || new URLSearchParams(window.location.search).get('listing_id') || '';
+				var listingId = $('.homey-pms-row').first().data('listing-id') || $('#listing_id').val() || new URLSearchParams(window.location.search).get('listing_id') || new URLSearchParams(window.location.search).get('p') || '';
 
 				// Extract customPeriod specifically for the active listingId, or fallback to first available
 				var customPeriod = {};
