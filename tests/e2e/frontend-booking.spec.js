@@ -201,7 +201,8 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				el.dispatchEvent(new Event('change', { bubbles: true }));
 			}, checkOutDate);
 
-			// Trigger price calculation AJAX wait
+			// Trigger mouseenter backup hook to force compilation of breakdown box on static mock themes
+			await page.dispatchEvent('#homey_booking_cost', 'mouseenter');
 			await page.waitForTimeout(1500);
 
 			// Click the breakdown first row (Nights / Price) inside the details dropdown
@@ -243,6 +244,8 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				el.dispatchEvent(new Event('change', { bubbles: true }));
 			}, checkOutDate);
 
+			// Trigger mouseenter backup hook to force compilation of breakdown box on static mock themes
+			await page.dispatchEvent('#homey_booking_cost', 'mouseenter');
 			await page.waitForTimeout(1500);
 
 			// Click Instant Booking or Book Now button to go to checkout page
