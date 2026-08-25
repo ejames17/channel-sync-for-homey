@@ -62,19 +62,15 @@ jobs:
 
     - name: Seed E2E Database Fixtures
       run: |
-        # Force-create the listing with exact ID 6759 in the database via wp eval
+        # Force-create the listing with exact ID 6759 in the database via wp_insert_post (with import_id parameter)
         npx @wordpress/env run cli wp eval '
-          global $wpdb;
-          $exists = $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE ID = 6759");
-          if (!$exists) {
-            $wpdb->insert($wpdb->posts, [
-              "ID" => 6759,
+          if (!get_post(6759)) {
+            wp_insert_post([
+              "import_id" => 6759,
               "post_title" => "Gorgeous Studio in Midtown Manhattan",
               "post_type" => "listing",
               "post_status" => "publish",
-              "post_author" => 1,
-              "post_date" => current_time("mysql"),
-              "post_date_gmt" => current_time("mysql", 1)
+              "post_author" => 1
             ]);
           }
         '
