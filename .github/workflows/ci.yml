@@ -93,6 +93,9 @@ jobs:
         npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_property_id 74130
         npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_room_id 170328
         
+        # Flush rewrite rules to ensure custom post type permalinks do not 404 (with CPT registered)
+        npx @wordpress/env run cli wp rewrite flush --hard
+        
         # Create standard admin user to bypass global login gate
         npx @wordpress/env run cli wp user create admin admin@example.com --role=administrator --user_pass=admin || true
 
