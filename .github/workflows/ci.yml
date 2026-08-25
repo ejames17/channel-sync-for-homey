@@ -66,8 +66,22 @@ jobs:
 
     - name: Seed E2E Database Fixtures
       run: |
-        # Generate listing post type 6759
-        npx @wordpress/env run cli wp post create --post_type=listing --post_status=publish --post_title="Gorgeous Studio in Midtown Manhattan" --ID=6759
+        # Force-create the listing with exact ID 6759 in the database via wp eval
+        npx @wordpress/env run cli wp eval '
+          global $wpdb;
+          $exists = $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE ID = 6759");
+          if (!$exists) {
+            $wpdb->insert($wpdb->posts, [
+              "ID" => 6759,
+              "post_title" => "Gorgeous Studio in Midtown Manhattan",
+              "post_type" => "listing",
+              "post_status" => "publish",
+              "post_author" => 1,
+              "post_date" => current_time("mysql"),
+              "post_date_gmt" => current_time("mysql", 1)
+            ]);
+          }
+        '
         
         # Populate mapping metadata
         npx @wordpress/env run cli wp post meta update 6759 _homey_sync_cm_property_id 74130
