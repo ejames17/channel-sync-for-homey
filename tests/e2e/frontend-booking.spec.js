@@ -49,7 +49,12 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 		// Programmatically seed local WordPress database with correct E2E fixture metadata via WP-CLI!
 		try {
 			const wpPath = process.env.WP_PATH || '/Users/elliottjames/reservationresources.com/site/web/wp';
+			const wpCliBase = process.env.WP_CLI_CMD || 'wp';
 			
+			// Only append path parameter if we are using the local global wp CLI directly
+			const pathArg = (wpCliBase === 'wp') ? ` --path=${wpPath}` : '';
+			const wpCli = `${wpCliBase}`;
+
 			// 1. Enable price sync and debug logging feature toggles inside options
 			const options = JSON.stringify({
 				active_channel: 'beds24',
@@ -58,11 +63,11 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				feature_price_sync: '1',
 				enable_debug_log: '1'
 			});
-			execSync(`wp option update homey_channel_sync_options '${options}' --format=json --path=${wpPath}`);
+			execSync(`${wpCli} option update homey_channel_sync_options '${options}' --format=json${pathArg}`);
 
 			// 2. Map Listing 6759 to Beds24 Room/Property IDs
-			execSync(`wp post meta update 6759 _homey_sync_cm_property_id 74130 --path=${wpPath}`);
-			execSync(`wp post meta update 6759 _homey_sync_cm_room_id 170328 --path=${wpPath}`);
+			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_property_id 74130${pathArg}`);
+			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_room_id 170328${pathArg}`);
 
 			// 3. Seed Listing 6759 with dynamic rolling custom periods calendar rates (completely future-proof)
 			const phpEval = `
@@ -77,7 +82,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				update_post_meta(6759, 'homey_nightly_price', '100');
 			`;
 			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
-			execSync(`wp eval '${escapedPhp}' --path=${wpPath}`);
+			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
 		} catch (e) {
 			console.warn('>> [E2E Setup Warning] Could not seed database fixtures via WP-CLI:', e.message);
 		}

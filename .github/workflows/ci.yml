@@ -98,6 +98,7 @@ jobs:
         WP_BASE_URL: http://localhost:8888
         WP_ADMIN_USER: admin
         WP_ADMIN_PASS: password
+        WP_CLI_CMD: "npx @wordpress/env run cli wp"
         WP_PATH: .
       run: npm run test:e2e
 
