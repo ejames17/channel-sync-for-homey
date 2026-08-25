@@ -102,6 +102,9 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 					];
 				});
 
+				// Wait for jQuery event listeners to bind successfully (prevents race conditions)
+				await page.waitForTimeout(1000);
+
 				await autoMatchBtn.click();
 				
 				// Auto Match updates feedback box and matches rows
