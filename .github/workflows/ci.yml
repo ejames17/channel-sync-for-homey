@@ -57,8 +57,8 @@ jobs:
         # Set up Twenty Twenty-Three as active fallback theme
         npx @wordpress/env run cli wp theme install twentytwentythree --activate
         
-        # Require our secure local stubs file dynamically inside the active theme's functions.php
-        npx @wordpress/env run cli "echo \"require_once '/var/www/html/wp-content/plugins/homey-channel-sync/tests/gha-stubs.php';\" >> /var/www/html/wp-content/themes/twentytwentythree/functions.php"
+        # Append require_once cleanly using wp eval (zero single-quotes or backslashes to prevent shell errors)
+        npx @wordpress/env run cli wp eval 'file_put_contents("/var/www/html/wp-content/themes/twentytwentythree/functions.php", "\nrequire_once \"/var/www/html/wp-content/plugins/homey-channel-sync/tests/gha-stubs.php\";\n", FILE_APPEND);'
 
     - name: Seed E2E Database Fixtures
       run: |
