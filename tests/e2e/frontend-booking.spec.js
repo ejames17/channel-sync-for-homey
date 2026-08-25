@@ -72,6 +72,9 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			// 3. Seed Listing 6759 with dynamic rolling custom periods calendar rates (completely future-proof)
 			const phpEval = `
 				global $wpdb;
+				if (!post_type_exists("listing")) {
+					register_post_type("listing", ["public" => true]);
+				}
 				$periods = [
 					${timestamp1} => ['night_price' => 100.0, 'weekend_price' => 100.0, 'guest_price' => 0.0],
 					${timestamp2} => ['night_price' => 107.0, 'weekend_price' => 107.0, 'guest_price' => 0.0],

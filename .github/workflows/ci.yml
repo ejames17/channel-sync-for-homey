@@ -62,8 +62,11 @@ jobs:
 
     - name: Seed E2E Database Fixtures
       run: |
-        # Force-create the listing with exact ID 6759 in the database via wp_insert_post (with import_id parameter)
+        # Force-create the listing with exact ID 6759 in the database via wp_insert_post (registering CPT inline first!)
         npx @wordpress/env run cli wp eval '
+          if (!post_type_exists("listing")) {
+            register_post_type("listing", ["public" => true]);
+          }
           if (!get_post(6759)) {
             wp_insert_post([
               "import_id" => 6759,
