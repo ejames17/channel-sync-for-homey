@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+// Suppress all PHP warnings and deprecation notices inside GHA to prevent "headers already sent" login cookie blocks
+error_reporting( 0 );
+@ini_set( 'display_errors', '0' );
+
 if ( ! function_exists( 'homey_option' ) ) {
 	/**
 	 * Stub for homey_option theme settings retriever.
