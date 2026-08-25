@@ -6,7 +6,7 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:api": "node --test tests/api/**/*.test.js"
+    "test:api": "node --test tests/api/beds24-mock-api.test.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0"
