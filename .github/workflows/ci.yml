@@ -57,8 +57,8 @@ jobs:
         # Set up Twenty Twenty-Three as active fallback theme
         npx @wordpress/env run cli wp theme install twentytwentythree --activate
         
-        # Append require_once cleanly using wp eval (zero single-quotes or backslashes to prevent shell errors)
-        npx @wordpress/env run cli wp eval 'file_put_contents("/var/www/html/wp-content/themes/twentytwentythree/functions.php", "\nrequire_once \"/var/www/html/wp-content/plugins/homey-channel-sync/tests/gha-stubs.php\";\n", FILE_APPEND);'
+        # Write functions.php from scratch (with <?php opening tag) to ensure it executes as PHP on block themes (GHA)
+        npx @wordpress/env run cli wp eval 'file_put_contents("/var/www/html/wp-content/themes/twentytwentythree/functions.php", "<?php\nrequire_once \"/var/www/html/wp-content/plugins/homey-channel-sync/tests/gha-stubs.php\";\n");'
 
     - name: Seed E2E Database Fixtures
       run: |
