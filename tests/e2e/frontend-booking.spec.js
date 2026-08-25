@@ -145,7 +145,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 	// =========================================================================
 	test('1. Calendar Daily Pricing Overlays & Booking Widget Details', async ({ page }) => {
 		// Navigate to the single listing details page via its fallback ID permalink (WordPress resolves automatically)
-		await page.goto(`/?p=${listingId}`);
+		await page.goto(`/?post_type=listing&p=${listingId}`);
 
 		// A. Verify Listing Details Calendar & Price Display
 		const calendarWrap = page.locator('.single-listing-calendar-wrap').first();
@@ -219,8 +219,8 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 	});
 
 	test('2. Instant Booking Checkout Page Continuity', async ({ page }) => {
-		// Navigate to single listing details page
-		await page.goto(`/?p=${listingId}`);
+		// Navigate to single listing details page (with post_type parameter to prevent 404 router failures)
+		await page.goto(`/?post_type=listing&p=${listingId}`);
 
 		// Populate check-in and check-out dates (.first() solves mobile vs desktop form duplicates)
 		const checkInInput = page.locator('.check_in_date, #arrive').first();
@@ -290,8 +290,8 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			await expect(page.locator('.notice-success, .updated')).toBeVisible();
 		}
 
-		// 3. Navigate back to Front-End single listing page
-		await page.goto(`/?p=${listingId}`);
+		// 3. Navigate back to Front-End single listing page (with post_type parameter to prevent 404 router failures)
+		await page.goto(`/?post_type=listing&p=${listingId}`);
 
 		// 4. Assert that our custom green pricing overlays have vanished
 		const priceOverlays = page.locator('.homey-pms-calendar-price');
