@@ -69,6 +69,37 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_property_id 74130${pathArg}`);
 			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_room_id 170328${pathArg}`);
 
+			// Build the mock DOM HTML content (Gutenberg-compliant wp:html blocks)
+			const mockHtml = "<!-- wp:html -->" +
+				"<div class=\"single-listing-calendar-wrap\">" +
+					"<ul>" +
+						`<li data-timestamp=\"${timestamp1}\">1</li>` +
+						`<li data-timestamp=\"${timestamp2}\">2</li>` +
+						`<li data-timestamp=\"${timestamp3}\">3</li>` +
+						"<li class=\"day-booked\">4</li>" +
+					"</ul>" +
+				"</div>" +
+				"<div id=\"homey_booking_cost\" class=\"sidebar-booking-module\">" +
+					"<div class=\"widget-header\">" +
+						"<span class=\"item-price\">$100.00/Nightly</span>" +
+					"</div>" +
+					"<input type=\"text\" name=\"arrive\" class=\"form-control check_in_date\" value=\"\" readonly />" +
+					"<input type=\"text\" name=\"depart\" class=\"form-control check_out_date\" value=\"\" readonly />" +
+					"<div id=\"collapseExample\">" +
+						"<ul>" +
+							"<li class=\"homey_price_first\">Nights</li>" +
+						"</ul>" +
+					"</div>" +
+					"<div class=\"payment-list\">" +
+						"<li class=\"homey_price_first\">Nights</li>" +
+					"</div>" +
+					"<button id=\"instance_booking\" class=\"btn-booking\">Book Now</button>" +
+				"</div>" +
+				"<!-- /wp:html -->";
+
+			// Base64-encode the HTML string to protect against any CLI/PHP quoting/escaping collisions (GHA/CI Safe!)
+			const base64Html = Buffer.from(mockHtml).toString('base64');
+
 			// 3. Seed Listing 6759 with dynamic rolling custom periods calendar rates (completely future-proof)
 			const phpEval = `
 				global $wpdb;
@@ -85,35 +116,9 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				update_post_meta(6759, 'homey_night_price', '100');
 				update_post_meta(6759, 'homey_nightly_price', '100');
 
-				// Dynamically seed mock HTML content into Listing 6759 post_content to replicate theme single layout on clean fallback theme requests
-				$mockHtml = "<!-- wp:html -->" .
-					"<div class=\\"single-listing-calendar-wrap\\">" .
-						"<ul>" .
-							"<li data-timestamp=\\"${timestamp1}\\">1</li>" .
-							"<li data-timestamp=\\"${timestamp2}\\">2</li>" .
-							"<li data-timestamp=\\"${timestamp3}\\">3</li>" .
-							"<li class=\\"day-booked\\">4</li>" .
-						"</ul>" .
-					"</div>" .
-					"<div id=\\"homey_booking_cost\\" class=\\"sidebar-booking-module\\">" .
-						"<div class=\\"widget-header\\">" .
-							"<span class=\\"item-price\\">$100.00/Nightly</span>" .
-						"</div>" .
-						"<input type=\\"text\\" name=\\"arrive\\" class=\\"form-control check_in_date\\" value=\\"\\" readonly />" .
-						"<input type=\\"text\\" name=\\"depart\\" class=\\"form-control check_out_date\\" value=\\"\\" readonly />" .
-						"<div id=\\"collapseExample\\">" .
-							"<ul>" .
-								"<li class=\\"homey_price_first\\">Nights</li>" .
-							"</ul>" .
-						"</div>" .
-						"<div class=\\"payment-list\\">" .
-							"<li class=\\"homey_price_first\\">Nights</li>" .
-						"</div>" .
-						"<button id=\\"instance_booking\\" class=\\"btn-booking\\">Book Now</button>" .
-					"</div>" .
-					"<!-- /wp:html -->";
-
-				wp_update_post(["ID" => 6759, "post_content" => $mockHtml]);
+				// Securely decode base64 string to update post_content perfectly on fallback theme requests
+				$htmlContent = base64_decode("${base64Html}");
+				wp_update_post(["ID" => 6759, "post_content" => $htmlContent]);
 			`;
 			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
 			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
