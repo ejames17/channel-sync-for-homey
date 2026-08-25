@@ -69,6 +69,24 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_property_id 74130${pathArg}`);
 			execSync(`${wpCli} post meta update 6759 _homey_sync_cm_room_id 170328${pathArg}`);
 
+			// 3. Seed Listing 6759 custom periods metadata (registering CPT inline first!)
+			const phpEval = `
+				if (!post_type_exists("listing")) {
+					register_post_type("listing", ["public" => true]);
+				}
+				$periods = [
+					${timestamp1} => ['night_price' => 100.0, 'weekend_price' => 100.0, 'guest_price' => 0.0],
+					${timestamp2} => ['night_price' => 107.0, 'weekend_price' => 107.0, 'guest_price' => 0.0],
+					${timestamp3} => ['night_price' => 146.0, 'weekend_price' => 146.0, 'guest_price' => 0.0]
+				];
+				update_post_meta(6759, 'homey_custom_period', $periods);
+				update_post_meta(6759, '_homey_sync_original_night_price', '75');
+				update_post_meta(6759, 'homey_night_price', '100');
+				update_post_meta(6759, 'homey_nightly_price', '100');
+			`;
+			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
+			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
+
 			// Build the mock DOM HTML content (Gutenberg-compliant wp:html blocks)
 			const mockHtml = "<!-- wp:html -->" +
 				"<div class=\"single-listing-calendar-wrap\">" +
@@ -97,31 +115,9 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				"</div>" +
 				"<!-- /wp:html -->";
 
-			// Base64-encode the HTML string to protect against any CLI/PHP quoting/escaping collisions (GHA/CI Safe!)
-			const base64Html = Buffer.from(mockHtml).toString('base64');
-
-			// 3. Seed Listing 6759 with dynamic rolling custom periods calendar rates (completely future-proof)
-			const phpEval = `
-				global $wpdb;
-				if (!post_type_exists("listing")) {
-					register_post_type("listing", ["public" => true]);
-				}
-				$periods = [
-					${timestamp1} => ['night_price' => 100.0, 'weekend_price' => 100.0, 'guest_price' => 0.0],
-					${timestamp2} => ['night_price' => 107.0, 'weekend_price' => 107.0, 'guest_price' => 0.0],
-					${timestamp3} => ['night_price' => 146.0, 'weekend_price' => 146.0, 'guest_price' => 0.0]
-				];
-				update_post_meta(6759, 'homey_custom_period', $periods);
-				update_post_meta(6759, '_homey_sync_original_night_price', '75');
-				update_post_meta(6759, 'homey_night_price', '100');
-				update_post_meta(6759, 'homey_nightly_price', '100');
-
-				// Securely decode base64 string to update post_content perfectly on fallback theme requests
-				$htmlContent = base64_decode("${base64Html}");
-				wp_update_post(["ID" => 6759, "post_content" => $htmlContent]);
-			`;
-			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
-			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
+			// 4. Update the Listing 6759 post_content dynamically using native wp post update CLI command (Bypasses PHP eval escaping limitations!)
+			const escapedHtml = mockHtml.replace(/'/g, "'\\''");
+			execSync(`${wpCli} post update 6759 --post_content='${escapedHtml}'${pathArg}`);
 		} catch (e) {
 			console.warn('>> [E2E Setup Warning] Could not seed database fixtures via WP-CLI:', e.message);
 		}
