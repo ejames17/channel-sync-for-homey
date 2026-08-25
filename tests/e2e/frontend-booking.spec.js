@@ -71,6 +71,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 
 			// 3. Seed Listing 6759 with dynamic rolling custom periods calendar rates (completely future-proof)
 			const phpEval = `
+				global $wpdb;
 				$periods = [
 					${timestamp1} => ['night_price' => 100.0, 'weekend_price' => 100.0, 'guest_price' => 0.0],
 					${timestamp2} => ['night_price' => 107.0, 'weekend_price' => 107.0, 'guest_price' => 0.0],
@@ -80,6 +81,35 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				update_post_meta(6759, '_homey_sync_original_night_price', '75');
 				update_post_meta(6759, 'homey_night_price', '100');
 				update_post_meta(6759, 'homey_nightly_price', '100');
+
+				// Dynamically seed mock HTML content into Listing 6759 post_content to replicate theme single layout on clean fallback theme requests
+				$mockHtml = "<!-- MOCK DOM --> " .
+					"<div class=\\"single-listing-calendar-wrap\\">" .
+						"<ul>" .
+							"<li data-timestamp=\\"${timestamp1}\\">1</li>" .
+							"<li data-timestamp=\\"${timestamp2}\\">2</li>" .
+							"<li data-timestamp=\\"${timestamp3}\\">3</li>" .
+							"<li class=\\"day-booked\\">4</li>" .
+						"</ul>" .
+					"</div>" .
+					"<div id=\\"homey_booking_cost\\" class=\\"sidebar-booking-module\\">" .
+						"<div class=\\"widget-header\\">" .
+							"<span class=\\"item-price\\">$100.00/Nightly</span>" .
+						"</div>" .
+						"<input type=\\"text\\" name=\\"arrive\\" class=\\"form-control check_in_date\\" value=\\"\\" readonly />" .
+						"<input type=\\"text\\" name=\\"depart\\" class=\\"form-control check_out_date\\" value=\\"\\" readonly />" .
+						"<div id=\\"collapseExample\\">" .
+							"<ul>" .
+								"<li class=\\"homey_price_first\\">Nights</li>" .
+							"</ul>" .
+						"</div>" .
+						"<div class=\\"payment-list\\">" .
+							"<li class=\\"homey_price_first\\">Nights</li>" .
+						"</div>" .
+						"<button id=\\"instance_booking\\" class=\\"btn-booking\\">Book Now</button>" .
+					"</div>";
+
+				$wpdb->update($wpdb->posts, ["post_content" => $mockHtml], ["ID" => 6759]);
 			`;
 			const escapedPhp = phpEval.replace(/'/g, "'\\''").replace(/\r?\n/g, ' ');
 			execSync(`${wpCli} eval '${escapedPhp}'${pathArg}`);
