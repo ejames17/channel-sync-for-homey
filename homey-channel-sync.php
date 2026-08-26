@@ -221,6 +221,9 @@ final class Homey_Channel_Sync {
 			return;
 		}
 
+		$options = get_option( 'homey_channel_sync_options', [] );
+		$feature_price_sync = ! empty( $options['feature_price_sync'] ) && '1' === $options['feature_price_sync'];
+
 		// Fetch the synchronized daily custom periods array
 		$custom_periods = get_post_meta( $post_id, 'homey_custom_period', true );
 		
@@ -342,6 +345,7 @@ final class Homey_Channel_Sync {
 		<!-- Homey Channel Sync — Front End Overlay Pricing Script block -->
 		<script>
 			window.homeyCustomPeriodPrice = <?php echo wp_json_encode( $pooled_periods ); ?>;
+			window.homeyPriceSyncEnabled = <?php echo $feature_price_sync ? 'true' : 'false'; ?>;
 
 			jQuery(document).ready(function($) {
 				var rawPeriods = window.homeyCustomPeriodPrice || {};
@@ -394,6 +398,7 @@ final class Homey_Channel_Sync {
 				// Re-trigger calendar render check when months navigate
 				$(document).on('click', '.next-month, .prev-month', function() {
 					setTimeout(injectCalendarPrices, 800);
+					setTimeout(updateHeaderPrice, 800);
 				});
 
 				// Helper function to format date strings to human-friendly layout (e.g. Friday, August 21)
@@ -550,6 +555,124 @@ final class Homey_Channel_Sync {
 					}
 				}
 
+				// 3. Dynamic Widget Header Price Update
+				function updateHeaderPrice() {
+					try {
+						if (!window.homeyPriceSyncEnabled) {
+							return;
+						}
+
+						var priceHeader = $('.item-price');
+						if (priceHeader.length === 0) {
+							return;
+						}
+
+						// Save original text once
+						if (!window.originalPriceText) {
+							window.originalPriceText = priceHeader.first().text();
+							window.originalPriceHtml = priceHeader.first().html();
+						}
+
+						var originalText = window.originalPriceText;
+						var match = originalText.match(/\$?([0-9.,]+)/);
+						var baseFallbackPrice = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
+
+						var currencySymbol = '$';
+						var symbolMatch = originalText.match(/^([^0-9.,\s]+)/) || originalText.match(/([^0-9.,\s]+)[0-9]/);
+						if (symbolMatch) {
+							currencySymbol = symbolMatch[1].trim();
+						}
+
+						// Check check-in and check-out dates
+						var arriveVal = $('.check_in_date').val() || $('input[name="arrive"]').val() || $('#check_in_date').val() || $('#arrive').val() || '';
+						var departVal = $('.check_out_date').val() || $('input[name="depart"]').val() || $('#check_out_date').val() || $('#depart').val() || '';
+
+						if (arriveVal && departVal) {
+							var partsArrive = arriveVal.split(/[-/]/);
+							var partsDepart = departVal.split(/[-/]/);
+
+							if (partsArrive.length === 3 && partsDepart.length === 3) {
+								var yArrive, mArrive, dArrive;
+								if (partsArrive[0].length === 4) {
+									yArrive = parseInt(partsArrive[0], 10);
+									mArrive = parseInt(partsArrive[1], 10) - 1;
+									dArrive = parseInt(partsArrive[2], 10);
+								} else {
+									yArrive = parseInt(partsArrive[2], 10);
+									mArrive = parseInt(partsArrive[1], 10) - 1;
+									dArrive = parseInt(partsArrive[0], 10);
+								}
+
+								var yDepart, mDepart, dDepart;
+								if (partsDepart[0].length === 4) {
+									yDepart = parseInt(partsDepart[0], 10);
+									mDepart = parseInt(partsDepart[1], 10) - 1;
+									dDepart = parseInt(partsDepart[2], 10);
+								} else {
+									yDepart = parseInt(partsDepart[2], 10);
+									mDepart = parseInt(partsDepart[1], 10) - 1;
+									dDepart = parseInt(partsDepart[0], 10);
+								}
+
+								var arriveDate = new Date(Date.UTC(yArrive, mArrive, dArrive));
+								var departDate = new Date(Date.UTC(yDepart, mDepart, dDepart));
+
+								if (!isNaN(arriveDate.getTime()) && !isNaN(departDate.getTime()) && arriveDate < departDate) {
+									var current = new Date(arriveDate.getTime());
+									var totalPrice = 0;
+									var nightCount = 0;
+
+									while (current < departDate) {
+										var y = current.getUTCFullYear();
+										var m = current.getUTCMonth();
+										var d = current.getUTCDate();
+										var dateUtc = Date.UTC(y, m, d) / 1000;
+
+										var price = baseFallbackPrice;
+										if (customPeriod && customPeriod[dateUtc]) {
+											price = parseFloat(customPeriod[dateUtc]['night_price']);
+										}
+										totalPrice += price;
+										nightCount++;
+
+										current.setUTCDate(current.getUTCDate() + 1);
+									}
+
+									if (nightCount > 0) {
+										var average = totalPrice / nightCount;
+										var dynamicPriceString = currencySymbol + average.toFixed(2) + "/Nightly";
+										priceHeader.html(dynamicPriceString);
+										return;
+									}
+								}
+							}
+						}
+
+						// Default State (No dates selected): Prepend "From " before the lowest available nightly rate
+						var minPrice = null;
+						if (customPeriod && !$.isEmptyObject(customPeriod)) {
+							for (var ts in customPeriod) {
+								if (customPeriod.hasOwnProperty(ts)) {
+									var dayPrice = parseFloat(customPeriod[ts]['night_price']);
+									if (dayPrice && (minPrice === null || dayPrice < minPrice)) {
+										minPrice = dayPrice;
+									}
+								}
+							}
+						}
+
+						var displayPrice = minPrice !== null ? minPrice : baseFallbackPrice;
+						if (displayPrice > 0) {
+							priceHeader.html("From " + currencySymbol + displayPrice.toFixed(2) + "/Nightly");
+						} else {
+							priceHeader.html(window.originalPriceHtml);
+						}
+
+					} catch (e) {
+						console.log('>> [Homey Channel Sync] Header price update error:', e);
+					}
+				}
+
 				// Global click delegation to toggle the breakdown box when clicking the first price item row
 				$(document).off('click', '.homey_price_first').on('click', '.homey_price_first', function(e) {
 					var item = $(this);
@@ -565,6 +688,11 @@ final class Homey_Channel_Sync {
 							}
 						});
 					}
+				});
+
+				// Hook input date changes to update widget header price
+				$(document).on('change', '.check_in_date, .check_out_date, input[name="arrive"], input[name="depart"]', function() {
+					setTimeout(updateHeaderPrice, 100);
 				});
 
 				// Hook to ajaxSuccess to re-run on booking calculation updates
@@ -583,20 +711,28 @@ final class Homey_Channel_Sync {
 						setTimeout(injectDailyBreakdown, 150);
 						setTimeout(injectDailyBreakdown, 500);
 						setTimeout(injectDailyBreakdown, 1000);
+						setTimeout(updateHeaderPrice, 150);
+						setTimeout(updateHeaderPrice, 500);
+						setTimeout(updateHeaderPrice, 1000);
 					} else if (data.indexOf('action=homey_calculate_booking_cost_ajax_nightly') !== -1 || data.indexOf('action=homey_calculate_booking_cost_ajax_day_date') !== -1) {
 						setTimeout(injectDailyBreakdown, 150);
 						setTimeout(injectDailyBreakdown, 500);
 						setTimeout(injectDailyBreakdown, 1000);
+						setTimeout(updateHeaderPrice, 150);
+						setTimeout(updateHeaderPrice, 500);
+						setTimeout(updateHeaderPrice, 1000);
 					}
 				});
 
 				// Backup hover-based triggers on payment list area to cover laggy async loads
 				$(document).on('mouseenter', '.payment-list, #homey_booking_cost, .payment-list-price-detail', function() {
 					injectDailyBreakdown();
+					updateHeaderPrice();
 				});
 
 				// Trigger breakdown initial scan on page load
 				setTimeout(injectDailyBreakdown, 600);
+				setTimeout(updateHeaderPrice, 600);
 			});
 		</script>
 		<?php

@@ -180,12 +180,12 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 		}
 
 		// B. Right-Hand Booking Widget Calculations
-		const bookingWidget = page.locator('#homey_booking_cost, .booking-sidebar, .sidebar-booking-module').first();
+		const bookingWidget = page.locator('#homey_booking_cost:visible, .booking-sidebar:visible, .sidebar-booking-module:visible').first();
 		await expect(bookingWidget).toBeVisible();
 
-		// Assert that the main price header on the widget displays a valid currency rate (e.g. .item-price)
+		// Assert that the main price header on the widget displays a valid currency rate and utilizes "From " for Default State (No dates selected)
 		const priceHeader = page.locator('.item-price').first();
-		await expect(priceHeader).toContainText('$');
+		await expect(priceHeader).toContainText('From $');
 
 		// Select available check-in and check-out dates if datepicker inputs are active (uses .first() to avoid strict mode violations)
 		const checkInInput = page.locator('.check_in_date, #arrive').first();
@@ -206,8 +206,11 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			}, checkOutDate);
 
 			// Trigger mouseenter backup hook to force compilation of breakdown box on static mock themes
-			await page.dispatchEvent('#homey_booking_cost', 'mouseenter');
+			await bookingWidget.dispatchEvent('mouseenter');
 			await page.waitForTimeout(1500);
+
+			// Assert that the header price has updated dynamically to display the true average nightly rate ($103.50/Nightly)
+			await expect(priceHeader).toContainText('$103.50/Nightly');
 
 			// Click the breakdown first row (Nights / Price) inside the details dropdown
 			const breakdownRow = page.locator('li.homey_price_first');
@@ -230,6 +233,8 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 		// Navigate to single listing details page (with post_type parameter to prevent 404 router failures)
 		await page.goto(`/?post_type=listing&p=${listingId}`);
 
+		const bookingWidget = page.locator('#homey_booking_cost:visible, .booking-sidebar:visible, .sidebar-booking-module:visible').first();
+
 		// Populate check-in and check-out dates (.first() solves mobile vs desktop form duplicates)
 		const checkInInput = page.locator('.check_in_date, #arrive').first();
 		const checkOutInput = page.locator('.check_out_date, #depart').first();
@@ -249,7 +254,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			}, checkOutDate);
 
 			// Trigger mouseenter backup hook to force compilation of breakdown box on static mock themes
-			await page.dispatchEvent('#homey_booking_cost', 'mouseenter');
+			await bookingWidget.dispatchEvent('mouseenter');
 			await page.waitForTimeout(1500);
 
 			// Click Instant Booking or Book Now button to go to checkout page
@@ -261,7 +266,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 				if (isMockTheme) {
 					// In clean mock GHA environments, bypass the real network redirect (which requires premium theme JS)
 					// and assert directly on the local summary panel elements which exist in our mock DOM!
-					const checkoutSummary = page.locator('#homey_booking_cost, .sidebar-booking-module').first();
+					const checkoutSummary = page.locator('#homey_booking_cost:visible, .sidebar-booking-module:visible').first();
 					await expect(checkoutSummary).toBeVisible();
 
 					const breakdownBox = page.locator('.homey-pms-daily-breakdown-box').first();
