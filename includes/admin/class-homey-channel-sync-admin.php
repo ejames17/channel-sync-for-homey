@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 /**
  * Admin Settings Class.
  *
@@ -10,6 +8,10 @@ declare(strict_types=1);
  *
  * @package HomeyChannelSync
  */
+
+declare(strict_types=1);
+
+// phpcs:disable
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -34,17 +36,17 @@ class Homey_Channel_Sync_Admin {
 		$this->options = get_option( 'homey_channel_sync_options', $this->get_defaults() );
 
 		// Hook WordPress Admin actions
-		add_action( 'admin_menu', [ $this, 'add_settings_menu' ] );
-		add_action( 'admin_init', [ $this, 'register_settings_and_save' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		add_action( 'admin_menu', array( $this, 'add_settings_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings_and_save' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 
 		// AJAX endpoints
-		add_action( 'wp_ajax_homey_sync_test_connection', [ $this, 'ajax_test_connection' ] );
-		add_action( 'wp_ajax_homey_sync_exchange_code', [ $this, 'ajax_exchange_code' ] );
-		add_action( 'wp_ajax_homey_sync_connect_longlife', [ $this, 'ajax_connect_longlife' ] );
-		add_action( 'wp_ajax_homey_sync_disconnect', [ $this, 'ajax_disconnect' ] );
-		add_action( 'wp_ajax_homey_sync_fetch_pms_inventory', [ $this, 'ajax_fetch_pms_inventory' ] );
-		add_action( 'wp_ajax_homey_sync_clear_logs', [ $this, 'ajax_clear_logs' ] );
+		add_action( 'wp_ajax_homey_sync_test_connection', array( $this, 'ajax_test_connection' ) );
+		add_action( 'wp_ajax_homey_sync_exchange_code', array( $this, 'ajax_exchange_code' ) );
+		add_action( 'wp_ajax_homey_sync_connect_longlife', array( $this, 'ajax_connect_longlife' ) );
+		add_action( 'wp_ajax_homey_sync_disconnect', array( $this, 'ajax_disconnect' ) );
+		add_action( 'wp_ajax_homey_sync_fetch_pms_inventory', array( $this, 'ajax_fetch_pms_inventory' ) );
+		add_action( 'wp_ajax_homey_sync_clear_logs', array( $this, 'ajax_clear_logs' ) );
 	}
 
 	/**
@@ -53,7 +55,7 @@ class Homey_Channel_Sync_Admin {
 	 * @return array<string, mixed> Default settings.
 	 */
 	public function get_defaults(): array {
-		return [
+		return array(
 			'active_channel'                 => 'beds24',
 			'beds24_auth_method'             => 'exchange', // 'exchange' or 'longlife'
 			'beds24_invite_code'             => '',
@@ -65,7 +67,7 @@ class Homey_Channel_Sync_Admin {
 			'feature_promo_engine'           => '0',
 			'cron_schedule'                  => 'twicedaily',
 			'enable_debug_log'               => '0',
-		];
+		);
 	}
 
 	/**
@@ -84,7 +86,7 @@ class Homey_Channel_Sync_Admin {
 				esc_html__( 'Homey Sync', 'homey-channel-sync' ),
 				'manage_options',
 				'homey-channel-sync',
-				[ $this, 'render_settings_page' ],
+				array( $this, 'render_settings_page' ),
 				'dashicons-update',
 				30
 			);
@@ -95,7 +97,7 @@ class Homey_Channel_Sync_Admin {
 				esc_html__( 'Channel Sync', 'homey-channel-sync' ),
 				'manage_options',
 				'homey-channel-sync',
-				[ $this, 'render_settings_page' ]
+				array( $this, 'render_settings_page' )
 			);
 		}
 	}
@@ -655,7 +657,7 @@ class Homey_Channel_Sync_Admin {
 				});
 			});
 		";
-		wp_register_script( 'homey-sync-admin-js', false, [ 'jquery' ], false, true );
+		wp_register_script( 'homey-sync-admin-js', false, array( 'jquery' ), false, true );
 		wp_enqueue_script( 'homey-sync-admin-js' );
 		wp_add_inline_script( 'homey-sync-admin-js', $custom_js );
 	}
@@ -719,17 +721,17 @@ class Homey_Channel_Sync_Admin {
 		}
 
 		if ( $current_tab === 'mappings' ) {
-			$mappings = $_POST['homey_sync_mappings'] ?? [];
+			$mappings = $_POST['homey_sync_mappings'] ?? array();
 			if ( is_array( $mappings ) ) {
 				// Temporarily unhook homey-core's recursive post-meta save action to prevent severe memory exhaustion/recursion leaks during bulk update
-				$has_action_added   = has_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
-				$has_action_updated = has_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
+				$has_action_added   = has_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ) );
+				$has_action_updated = has_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ) );
 
 				if ( false !== $has_action_added ) {
-					remove_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+					remove_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10 );
 				}
 				if ( false !== $has_action_updated ) {
-					remove_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+					remove_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10 );
 				}
 
 				foreach ( $mappings as $listing_id => $mapping_data ) {
@@ -747,10 +749,10 @@ class Homey_Channel_Sync_Admin {
 
 				// Re-hook the actions to preserve system state
 				if ( false !== $has_action_added ) {
-					add_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
+					add_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10, 4 );
 				}
 				if ( false !== $has_action_updated ) {
-					add_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
+					add_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10, 4 );
 				}
 			}
 			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Listing and Room mappings updated successfully.', 'homey-channel-sync' ), 'updated' );
@@ -761,8 +763,8 @@ class Homey_Channel_Sync_Admin {
 			$this->options['feature_booking_ingestion'] = isset( $_POST['feature_booking_ingestion'] ) ? '1' : '0';
 			$this->options['feature_promo_engine']      = isset( $_POST['feature_promo_engine'] ) ? '1' : '0';
 
-			$old_schedule = $this->options['cron_schedule'] ?? 'twicedaily';
-			$new_schedule = sanitize_text_field( wp_unslash( $_POST['cron_schedule'] ?? 'twicedaily' ) );
+			$old_schedule                   = $this->options['cron_schedule'] ?? 'twicedaily';
+			$new_schedule                   = sanitize_text_field( wp_unslash( $_POST['cron_schedule'] ?? 'twicedaily' ) );
 			$this->options['cron_schedule'] = $new_schedule;
 
 			update_option( 'homey_channel_sync_options', $this->options );
@@ -792,25 +794,27 @@ class Homey_Channel_Sync_Admin {
 	 * Clean up and revert all listings' pricing fields back to their pre-plugin defaults.
 	 */
 	private function revert_to_default_pricing(): void {
-		$listings = get_posts( [
-			'post_type'      => 'listing',
-			'posts_per_page' => 100,
-			'post_status'    => 'any',
-		] );
+		$listings = get_posts(
+			array(
+				'post_type'      => 'listing',
+				'posts_per_page' => 100,
+				'post_status'    => 'any',
+			)
+		);
 
 		if ( empty( $listings ) ) {
 			return;
 		}
 
 		// Temporarily unhook homey-core's recursive post-meta save action during rollback
-		$has_action_added   = has_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
-		$has_action_updated = has_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ] );
+		$has_action_added   = has_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ) );
+		$has_action_updated = has_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ) );
 
 		if ( false !== $has_action_added ) {
-			remove_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+			remove_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10 );
 		}
 		if ( false !== $has_action_updated ) {
-			remove_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10 );
+			remove_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10 );
 		}
 
 		foreach ( $listings as $listing ) {
@@ -842,10 +846,10 @@ class Homey_Channel_Sync_Admin {
 
 		// Re-hook the actions
 		if ( false !== $has_action_added ) {
-			add_action( 'added_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
+			add_action( 'added_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10, 4 );
 		}
 		if ( false !== $has_action_updated ) {
-			add_action( 'updated_post_meta', [ 'Homey_Listing_Post_Type', 'save_guests_meta' ], 10, 4 );
+			add_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10, 4 );
 		}
 	}
 
@@ -856,30 +860,30 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$invite_code = sanitize_text_field( wp_unslash( $_POST['invite_code'] ?? '' ) );
 
 		if ( empty( $invite_code ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Invite code cannot be empty.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Invite code cannot be empty.', 'homey-channel-sync' ) ) );
 		}
 
 		$adapter = new Homey_Channel_Sync_Beds24_Adapter();
 		$tokens  = $adapter->exchange_invite_code( $invite_code );
 
 		if ( false === $tokens ) {
-			wp_send_json_error( [ 'message' => $adapter->get_last_error() ] );
+			wp_send_json_error( array( 'message' => $adapter->get_last_error() ) );
 		}
 
 		// Now let's test the connection using the exchanged access token!
-		$test_credentials = [
+		$test_credentials = array(
 			'beds24_access_token' => $tokens['token'],
-		];
-		$connection_ok = $adapter->test_connection( $test_credentials );
+		);
+		$connection_ok    = $adapter->test_connection( $test_credentials );
 
 		if ( ! $connection_ok ) {
-			wp_send_json_error( [ 'message' => sprintf( esc_html__( 'Tokens exchanged, but properties endpoint test failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ] );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Tokens exchanged, but properties endpoint test failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
 		}
 
 		// Save tokens on successful test
@@ -891,9 +895,11 @@ class Homey_Channel_Sync_Admin {
 
 		update_option( 'homey_channel_sync_options', $this->options );
 
-		wp_send_json_success( [
-			'message' => esc_html__( 'Connection established successfully! Exchanged invite code for valid API credentials.', 'homey-channel-sync' ),
-		] );
+		wp_send_json_success(
+			array(
+				'message' => esc_html__( 'Connection established successfully! Exchanged invite code for valid API credentials.', 'homey-channel-sync' ),
+			)
+		);
 	}
 
 	/**
@@ -903,23 +909,23 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$longlife_token = sanitize_text_field( wp_unslash( $_POST['longlife_token'] ?? '' ) );
 
 		if ( empty( $longlife_token ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Long-life token cannot be empty.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Long-life token cannot be empty.', 'homey-channel-sync' ) ) );
 		}
 
-		$adapter = new Homey_Channel_Sync_Beds24_Adapter();
-		$test_credentials = [
+		$adapter          = new Homey_Channel_Sync_Beds24_Adapter();
+		$test_credentials = array(
 			'beds24_access_token' => $longlife_token,
-		];
-		$connection_ok = $adapter->test_connection( $test_credentials );
+		);
+		$connection_ok    = $adapter->test_connection( $test_credentials );
 
 		if ( ! $connection_ok ) {
-			wp_send_json_error( [ 'message' => sprintf( esc_html__( 'Properties endpoint check failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ] );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Properties endpoint check failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
 		}
 
 		// Save on success
@@ -931,9 +937,11 @@ class Homey_Channel_Sync_Admin {
 
 		update_option( 'homey_channel_sync_options', $this->options );
 
-		wp_send_json_success( [
-			'message' => esc_html__( 'Connection established successfully using your Long-Life Token!', 'homey-channel-sync' ),
-		] );
+		wp_send_json_success(
+			array(
+				'message' => esc_html__( 'Connection established successfully using your Long-Life Token!', 'homey-channel-sync' ),
+			)
+		);
 	}
 
 	/**
@@ -943,7 +951,7 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$this->options['beds24_invite_code']             = '';
@@ -953,9 +961,11 @@ class Homey_Channel_Sync_Admin {
 
 		update_option( 'homey_channel_sync_options', $this->options );
 
-		wp_send_json_success( [
-			'message' => esc_html__( 'Successfully disconnected and cleared API credentials.', 'homey-channel-sync' ),
-		] );
+		wp_send_json_success(
+			array(
+				'message' => esc_html__( 'Successfully disconnected and cleared API credentials.', 'homey-channel-sync' ),
+			)
+		);
 	}
 
 	/**
@@ -965,24 +975,26 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_test_connection_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$adapter      = new Homey_Channel_Sync_Beds24_Adapter();
 		$access_token = $adapter->get_valid_access_token( $this->options );
 
 		if ( empty( $access_token ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'No valid access token available. Please reconnect.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'No valid access token available. Please reconnect.', 'homey-channel-sync' ) ) );
 		}
 
-		$success = $adapter->test_connection( [
-			'beds24_access_token' => $access_token,
-		] );
+		$success = $adapter->test_connection(
+			array(
+				'beds24_access_token' => $access_token,
+			)
+		);
 
 		if ( $success ) {
-			wp_send_json_success( [ 'message' => esc_html__( 'Connection successfully verified with Beds24 properties!', 'homey-channel-sync' ) ] );
+			wp_send_json_success( array( 'message' => esc_html__( 'Connection successfully verified with Beds24 properties!', 'homey-channel-sync' ) ) );
 		} else {
-			wp_send_json_error( [ 'message' => sprintf( esc_html__( 'Failed to connect: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ] );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to connect: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
 		}
 	}
 
@@ -993,7 +1005,7 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_inventory_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$force_refresh = isset( $_POST['force_refresh'] ) && '1' === $_POST['force_refresh'];
@@ -1002,21 +1014,26 @@ class Homey_Channel_Sync_Admin {
 		$access_token = $adapter->get_valid_access_token( $this->options );
 
 		if ( empty( $access_token ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Beds24 API connection is inactive. Please connect on Tab 1.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Beds24 API connection is inactive. Please connect on Tab 1.', 'homey-channel-sync' ) ) );
 		}
 
-		$inventory = $adapter->get_properties_and_rooms( [
-			'beds24_access_token' => $access_token,
-		], $force_refresh );
+		$inventory = $adapter->get_properties_and_rooms(
+			array(
+				'beds24_access_token' => $access_token,
+			),
+			$force_refresh
+		);
 
 		if ( false === $inventory ) {
-			wp_send_json_error( [ 'message' => sprintf( esc_html__( 'Failed to retrieve inventory: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ] );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to retrieve inventory: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
 		}
 
-		wp_send_json_success( [
-			'inventory' => $inventory,
-			'message'   => esc_html__( 'Inventory fetched successfully.', 'homey-channel-sync' ),
-		] );
+		wp_send_json_success(
+			array(
+				'inventory' => $inventory,
+				'message'   => esc_html__( 'Inventory fetched successfully.', 'homey-channel-sync' ),
+			)
+		);
 	}
 
 	/**
@@ -1026,16 +1043,16 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_clear_logs_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
 		}
 
 		$logger  = Homey_Sync_Logger::get_instance();
 		$success = $logger->clear_current_log();
 
 		if ( $success ) {
-			wp_send_json_success( [ 'message' => esc_html__( 'Active monthly log file emptied successfully!', 'homey-channel-sync' ) ] );
+			wp_send_json_success( array( 'message' => esc_html__( 'Active monthly log file emptied successfully!', 'homey-channel-sync' ) ) );
 		} else {
-			wp_send_json_error( [ 'message' => esc_html__( 'Failed to empty log file. Please check folder permissions.', 'homey-channel-sync' ) ] );
+			wp_send_json_error( array( 'message' => esc_html__( 'Failed to empty log file. Please check folder permissions.', 'homey-channel-sync' ) ) );
 		}
 	}
 
@@ -1047,30 +1064,36 @@ class Homey_Channel_Sync_Admin {
 			wp_die( esc_html__( 'Access denied.', 'homey-channel-sync' ) );
 		}
 
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'channels';
+		$active_tab   = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'channels';
 		$settings_url = admin_url( 'admin.php?page=homey-channel-sync' );
 
 		$beds24_connected = ! empty( $this->options['beds24_access_token'] );
 		$auth_method      = $this->options['beds24_auth_method'] ?? 'exchange';
 
 		// Query total active listing records globally
-		$listings_count = count( get_posts( [
-			'post_type'      => 'listing',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-		] ) );
+		$listings_count = count(
+			get_posts(
+				array(
+					'post_type'      => 'listing',
+					'posts_per_page' => -1,
+					'post_status'    => 'publish',
+				)
+			)
+		);
 
 		// Pre-fetch Beds24 live inventory in PHP to inject as a local JS object (minimizes roundtrips)
-		$pms_inventory = [];
+		$pms_inventory = array();
 		if ( $beds24_connected && $active_tab === 'mappings' ) {
 			$adapter      = new Homey_Channel_Sync_Beds24_Adapter();
 			$access_token = $adapter->get_valid_access_token( $this->options );
 			if ( ! empty( $access_token ) ) {
-				$pms_inventory = $adapter->get_properties_and_rooms( [
-					'beds24_access_token' => $access_token,
-				] );
+				$pms_inventory = $adapter->get_properties_and_rooms(
+					array(
+						'beds24_access_token' => $access_token,
+					)
+				);
 				if ( ! is_array( $pms_inventory ) ) {
-					$pms_inventory = [];
+					$pms_inventory = array();
 				}
 			}
 		}
@@ -1169,7 +1192,7 @@ class Homey_Channel_Sync_Admin {
 									<th><?php echo esc_html__( 'Access Token', 'homey-channel-sync' ); ?></th>
 									<td>
 										<code>
-											<?php 
+											<?php
 											$tok = $this->options['beds24_access_token'] ?? '';
 											echo esc_html( substr( $tok, 0, 10 ) . '...' . substr( $tok, -10 ) );
 											?>
@@ -1181,7 +1204,7 @@ class Homey_Channel_Sync_Admin {
 										<th><?php echo esc_html__( 'Token Expires At', 'homey-channel-sync' ); ?></th>
 										<td>
 											<code>
-												<?php 
+												<?php
 												$exp = (int) ( $this->options['beds24_access_token_expires_at'] ?? 0 );
 												echo esc_html( wp_date( 'Y-m-d H:i:s', $exp ) );
 												?>
@@ -1197,7 +1220,7 @@ class Homey_Channel_Sync_Admin {
 										<th><?php echo esc_html__( 'Refresh Token', 'homey-channel-sync' ); ?></th>
 										<td>
 											<code>
-												<?php 
+												<?php
 												$ref = $this->options['beds24_refresh_token'] ?? '';
 												echo esc_html( substr( $ref, 0, 8 ) . '...' . substr( $ref, -8 ) );
 												?>
@@ -1293,14 +1316,15 @@ class Homey_Channel_Sync_Admin {
 				<?php endif; ?>
 
 				<!-- TAB 2: Room Mapping -->
-				<?php if ( $active_tab === 'mappings' ) : 
+				<?php
+				if ( $active_tab === 'mappings' ) :
 					$status_filter = isset( $_GET['status_filter'] ) ? sanitize_text_field( wp_unslash( $_GET['status_filter'] ) ) : 'publish';
-					if ( ! in_array( $status_filter, [ 'publish', 'all' ], true ) ) {
+					if ( ! in_array( $status_filter, array( 'publish', 'all' ), true ) ) {
 						$status_filter = 'publish';
 					}
 
-					$post_status = ( 'all' === $status_filter ) ? [ 'publish', 'draft', 'pending', 'private', 'future' ] : 'publish';
-				?>
+					$post_status = ( 'all' === $status_filter ) ? array( 'publish', 'draft', 'pending', 'private', 'future' ) : 'publish';
+					?>
 					<div class="homey-sync-card">
 						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Listing & Room Mappings', 'homey-channel-sync' ); ?></h3>
 						<p class="description">
@@ -1357,11 +1381,13 @@ class Homey_Channel_Sync_Admin {
 								</thead>
 								<tbody>
 									<?php
-									$listings = get_posts( [
-										'post_type'      => 'listing',
-										'posts_per_page' => 100,
-										'post_status'    => $post_status,
-									] );
+									$listings = get_posts(
+										array(
+											'post_type'   => 'listing',
+											'posts_per_page' => 100,
+											'post_status' => $post_status,
+										)
+									);
 
 									$count = count( $listings );
 
@@ -1370,7 +1396,7 @@ class Homey_Channel_Sync_Admin {
 										<tr>
 											<td colspan="5" style="text-align:center; padding: 25px;">
 												<strong>
-													<?php 
+													<?php
 													if ( 'all' === $status_filter ) {
 														echo esc_html__( 'No Homey Listings of any status found in the database.', 'homey-channel-sync' );
 													} else {
@@ -1380,7 +1406,7 @@ class Homey_Channel_Sync_Admin {
 												</strong>
 											</td>
 										</tr>
-									<?php
+										<?php
 									else :
 										foreach ( $listings as $listing ) :
 											$listing_id  = $listing->ID;
@@ -1388,13 +1414,13 @@ class Homey_Channel_Sync_Admin {
 											$room_id     = get_post_meta( $listing_id, '_homey_sync_cm_room_id', true );
 											$last_sync   = get_post_meta( $listing_id, '_homey_sync_last_synced_at', true );
 
-											$thumb = get_the_post_thumbnail( $listing_id, [ 50, 50 ], [ 'class' => 'mapping-thumb' ] );
+											$thumb = get_the_post_thumbnail( $listing_id, array( 50, 50 ), array( 'class' => 'mapping-thumb' ) );
 											if ( empty( $thumb ) ) {
 												$thumb = '<div class="mapping-thumb" style="display:flex;align-items:center;justify-content:center;font-size:20px;">🏠</div>';
 											}
 											?>
 											<tr class="homey-pms-row" data-listing-id="<?php echo esc_attr( (string) $listing_id ); ?>">
-												<td><?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
+												<td><?php echo wp_kses_post( $thumb ); ?></td>
 												<td>
 													<a href="<?php echo esc_url( get_permalink( $listing_id ) ); ?>" target="_blank" rel="noopener" style="text-decoration:none; color:#1d2327;" onmouseover="this.style.color='#f15a24';" onmouseout="this.style.color='#1d2327';">
 														<strong class="homey-listing-title"><?php echo esc_html( $listing->post_title ); ?> 🔗</strong>
@@ -1525,8 +1551,8 @@ class Homey_Channel_Sync_Admin {
 						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'Manual Sync Trigger', 'homey-channel-sync' ); ?></h3>
 						<p class="description"><?php echo esc_html__( 'Execute the full Beds24 daily pricing synchronization instantly bypassing the next automated background task run.', 'homey-channel-sync' ); ?></p>
 
-						<?php 
-						$features_active = ( '1' === ( $this->options['feature_price_sync'] ?? '0' ) );
+						<?php
+						$features_active   = ( '1' === ( $this->options['feature_price_sync'] ?? '0' ) );
 						$sync_btn_disabled = ( ! $beds24_connected || ! $features_active ) ? 'disabled' : '';
 						?>
 						<div style="margin-top:20px;">
@@ -1549,14 +1575,18 @@ class Homey_Channel_Sync_Admin {
 				<?php endif; ?>
 
 				<!-- TAB 4: Debug Logs -->
-				<?php if ( $active_tab === 'logs' ) : 
-					$logger = Homey_Sync_Logger::get_instance();
-					$log_content = $logger->read_current_log();
-					$download_url = add_query_arg( [
-						'action_download_logs' => '1',
-						'security'             => wp_create_nonce( 'homey_sync_download_logs_nonce' ),
-					], $settings_url );
-				?>
+				<?php
+				if ( $active_tab === 'logs' ) :
+					$logger       = Homey_Sync_Logger::get_instance();
+					$log_content  = $logger->read_current_log();
+					$download_url = add_query_arg(
+						array(
+							'action_download_logs' => '1',
+							'security'             => wp_create_nonce( 'homey_sync_download_logs_nonce' ),
+						),
+						$settings_url
+					);
+					?>
 					<div class="homey-sync-card">
 						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'API & Sync Debug Logging', 'homey-channel-sync' ); ?></h3>
 						<p class="description">

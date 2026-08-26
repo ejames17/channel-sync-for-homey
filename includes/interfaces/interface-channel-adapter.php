@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 /**
  * Interface definition for all Channel Manager Adapters.
  *
@@ -9,6 +7,8 @@ declare(strict_types=1);
  *
  * @package HomeyChannelSync
  */
+
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

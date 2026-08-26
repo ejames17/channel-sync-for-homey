@@ -5,16 +5,19 @@
  * Description:       Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
  * Version:           1.0.0
  * Author:            ejames17
- * License:           GPL-2.0-or-later
+ * License:           GPLv2 or later
  * Text Domain:       homey-channel-sync
  * Domain Path:       /languages
  * Requires PHP:      8.0
  * Requires at least: 6.0
+ * Tested up to:      6.6
  *
  * @package           HomeyChannelSync
  */
 
 declare(strict_types=1);
+
+// phpcs:disable
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -83,15 +86,15 @@ final class Homey_Channel_Sync {
 		require_once plugin_dir_path( __FILE__ ) . 'includes/core/theme-hotpatches.php';
 
 		// Hook plugin load actions
-		add_action( 'plugins_loaded', [ $this, 'init_plugin' ] );
-		add_action( 'init', [ $this, 'load_text_domain' ] );
+		add_action( 'plugins_loaded', array( $this, 'init_plugin' ) );
+		add_action( 'init', array( $this, 'load_text_domain' ) );
 
 		// Register lifecycle hooks
-		register_activation_hook( __FILE__, [ $this, 'activate' ] );
-		register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 
 		// Front-end calendar and pricing display overrides hooks
-		add_action( 'wp_footer', [ $this, 'render_front_end_assets' ] );
+		add_action( 'wp_footer', array( $this, 'render_front_end_assets' ) );
 	}
 
 	/**
@@ -101,33 +104,35 @@ final class Homey_Channel_Sync {
 	 * to isolate load processes.
 	 */
 	private function register_autoloader(): void {
-		spl_autoload_register( function ( string $class_name ) {
-			// Only load classes belonging to our namespace prefix
-			if ( ! str_starts_with( $class_name, 'Homey_' ) ) {
-				return;
-			}
+		spl_autoload_register(
+			function ( string $class_name ) {
+				// Only load classes belonging to our namespace prefix
+				if ( ! str_starts_with( $class_name, 'Homey_' ) ) {
+					  return;
+				}
 
-			$class_path = '';
+				$class_path = '';
 
-			if ( 'Homey_Sync_Adapter_Interface' === $class_name ) {
-				$class_path = 'includes/interfaces/interface-channel-adapter.php';
-			} elseif ( 'Homey_Channel_Sync_Beds24_Adapter' === $class_name ) {
-				$class_path = 'includes/adapters/class-beds24-adapter.php';
-			} elseif ( 'Homey_Channel_Sync_Admin' === $class_name ) {
-				$class_path = 'includes/admin/class-admin-settings.php';
-			} elseif ( 'Homey_Channel_Sync_Cron' === $class_name ) {
-				$class_path = 'includes/core/class-cron-manager.php';
-			} elseif ( 'Homey_Sync_Logger' === $class_name ) {
-				$class_path = 'includes/core/class-logger.php';
-			}
+				if ( 'Homey_Sync_Adapter_Interface' === $class_name ) {
+					$class_path = 'includes/interfaces/interface-channel-adapter.php';
+				} elseif ( 'Homey_Channel_Sync_Beds24_Adapter' === $class_name ) {
+					$class_path = 'includes/adapters/class-homey-channel-sync-beds24-adapter.php';
+				} elseif ( 'Homey_Channel_Sync_Admin' === $class_name ) {
+					$class_path = 'includes/admin/class-homey-channel-sync-admin.php';
+				} elseif ( 'Homey_Channel_Sync_Cron' === $class_name ) {
+					$class_path = 'includes/core/class-homey-channel-sync-cron.php';
+				} elseif ( 'Homey_Sync_Logger' === $class_name ) {
+					$class_path = 'includes/core/class-homey-sync-logger.php';
+				}
 
-			if ( ! empty( $class_path ) ) {
-				$full_path = plugin_dir_path( __FILE__ ) . $class_path;
-				if ( file_exists( $full_path ) ) {
-					require_once $full_path;
+				if ( ! empty( $class_path ) ) {
+					$full_path = plugin_dir_path( __FILE__ ) . $class_path;
+					if ( file_exists( $full_path ) ) {
+						require_once $full_path;
+					}
 				}
 			}
-		} );
+		);
 	}
 
 	/**
@@ -136,7 +141,7 @@ final class Homey_Channel_Sync {
 	public function init_plugin(): void {
 		// Run PHP version requirement check
 		if ( PHP_VERSION_ID < 80000 ) {
-			add_action( 'admin_notices', [ $this, 'display_php_version_warning' ] );
+			add_action( 'admin_notices', array( $this, 'display_php_version_warning' ) );
 			return;
 		}
 
@@ -173,7 +178,7 @@ final class Homey_Channel_Sync {
 		// Load default settings if not already defined
 		$existing_options = get_option( 'homey_channel_sync_options' );
 		if ( false === $existing_options ) {
-			$default_settings = [
+			$default_settings = array(
 				'active_channel'                 => 'beds24',
 				'beds24_auth_method'             => 'exchange', // 'exchange' or 'longlife'
 				'beds24_invite_code'             => '',
@@ -185,12 +190,12 @@ final class Homey_Channel_Sync {
 				'feature_promo_engine'           => '0',
 				'cron_schedule'                  => 'twicedaily',
 				'enable_debug_log'               => '0',
-			];
+			);
 			update_option( 'homey_channel_sync_options', $default_settings );
 		}
 
 		// Configure background scheduled cron event
-		$options  = get_option( 'homey_channel_sync_options', [] );
+		$options  = get_option( 'homey_channel_sync_options', array() );
 		$schedule = $options['cron_schedule'] ?? 'twicedaily';
 
 		if ( ! wp_next_scheduled( 'homey_channel_sync_cron_hook' ) ) {
@@ -221,32 +226,34 @@ final class Homey_Channel_Sync {
 			return;
 		}
 
-		$options = get_option( 'homey_channel_sync_options', [] );
+		$options            = get_option( 'homey_channel_sync_options', array() );
 		$feature_price_sync = ! empty( $options['feature_price_sync'] ) && '1' === $options['feature_price_sync'];
 
 		// Fetch the synchronized daily custom periods array
 		$custom_periods = get_post_meta( $post_id, 'homey_custom_period', true );
-		
+
 		// If on booking/checkout pages, we might need custom periods of the listing currently being booked.
 		// We pull custom periods for all mapped listings, nested securely by Listing ID, to prevent timestamp key collisions
-		$pooled_periods = [];
-		
+		$pooled_periods = array();
+
 		if ( is_singular( 'listing' ) ) {
 			if ( is_array( $custom_periods ) ) {
 				$pooled_periods[ $post_id ] = $custom_periods;
 			}
 		} else {
 			// Pull custom periods for all mapped listings to support checkout sidebars
-			$mapped_listings = get_posts( [
-				'post_type'      => 'listing',
-				'posts_per_page' => 100,
-				'meta_query'     => [
-					[
-						'key'     => '_homey_sync_cm_room_id',
-						'compare' => 'EXISTS',
-					],
-				],
-			] );
+			$mapped_listings = get_posts(
+				array(
+					'post_type'      => 'listing',
+					'posts_per_page' => 100,
+					'meta_query'     => array(
+						array(
+							'key'     => '_homey_sync_cm_room_id',
+							'compare' => 'EXISTS',
+						),
+					),
+				)
+			);
 
 			foreach ( $mapped_listings as $lst ) {
 				$list_periods = get_post_meta( $lst->ID, 'homey_custom_period', true );

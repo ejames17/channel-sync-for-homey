@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 /**
  * Singleton Logger Class.
  *
@@ -10,19 +8,33 @@ declare(strict_types=1);
  * @package HomeyChannelSync
  */
 
+declare(strict_types=1);
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Singleton Logger Class.
+ *
+ * Provides a modular, high-integrity logging engine that records API, transient,
+ * and background synchronization actions in a secure, isolated directory inside uploads.
+ *
+ * @package HomeyChannelSync
+ */
 final class Homey_Sync_Logger {
 
 	/**
 	 * Unique singleton instance.
+	 *
+	 * @var Homey_Sync_Logger|null
 	 */
 	private static ?Homey_Sync_Logger $instance = null;
 
 	/**
 	 * Log directory path.
+	 *
+	 * @var string
 	 */
 	private string $log_dir;
 
@@ -59,14 +71,14 @@ final class Homey_Sync_Logger {
 			wp_mkdir_p( $this->log_dir );
 		}
 
-		// 1. Create .htaccess if missing to block direct HTTP web browser access
+		// 1. Create .htaccess if missing to block direct HTTP web browser access.
 		$htaccess_file = $this->log_dir . '.htaccess';
 		if ( ! file_exists( $htaccess_file ) ) {
 			$htaccess_rules = "Deny from all\n";
 			file_put_contents( $htaccess_file, $htaccess_rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
 		}
 
-		// 2. Create empty index.php to prevent directory indexing
+		// 2. Create empty index.php to prevent directory indexing.
 		$index_file = $this->log_dir . 'index.php';
 		if ( ! file_exists( $index_file ) ) {
 			$index_content = "<?php\n// Silence is golden.\n";
@@ -91,12 +103,12 @@ final class Homey_Sync_Logger {
 	 * @param string $message Log entry message.
 	 */
 	public function write( string $level, string $message ): void {
-		// Read settings options defensively to check if logging is enabled
-		$options = get_option( 'homey_channel_sync_options', [] );
+		// Read settings options defensively to check if logging is enabled.
+		$options         = get_option( 'homey_channel_sync_options', array() );
 		$logging_enabled = $options['enable_debug_log'] ?? '0';
 
 		if ( '1' !== $logging_enabled && 'error' !== strtolower( $level ) ) {
-			// Always write core 'error' severity entries, but bypass others if logger is disabled
+			// Always write core 'error' severity entries, but bypass others if logger is disabled.
 			return;
 		}
 
@@ -104,7 +116,7 @@ final class Homey_Sync_Logger {
 		$level_tag    = strtoupper( $level );
 		$log_file     = $this->log_dir . 'sync-' . current_time( 'Y-m' ) . '.log';
 
-		// Sanitize and format log entry line
+		// Sanitize and format log entry line.
 		$formatted_entry = sprintf(
 			"[%1\$s] [%2\$s]: %3\$s\n",
 			$current_time,
@@ -135,7 +147,7 @@ final class Homey_Sync_Logger {
 				continue;
 			}
 
-			// Clean logs modified more than 30 days ago
+			// Clean logs modified more than 30 days ago.
 			if ( filemtime( $file ) < $thirty_days_ago ) {
 				unlink( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_unlink
 			}
@@ -163,14 +175,15 @@ final class Homey_Sync_Logger {
 			return esc_html__( 'No logs recorded yet for this month.', 'homey-channel-sync' );
 		}
 
-		// Read up to 2MB to prevent out-of-memory
+		// Read up to 2MB to prevent out-of-memory.
 		$size = filesize( $log_file );
 		if ( $size > 2 * 1024 * 1024 ) {
 			$contents = file_get_contents( $log_file, false, null, $size - ( 1024 * 1024 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-			return "--- [TRUNCATED DUE TO SIZE - DISPLAYING LATEST 1MB] ---\n" . ( $contents ?: '' );
+			return "--- [TRUNCATED DUE TO SIZE - DISPLAYING LATEST 1MB] ---\n" . ( false !== $contents ? $contents : '' );
 		}
 
-		return file_get_contents( $log_file ) ?: esc_html__( 'Active log is empty.', 'homey-channel-sync' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+		$data = file_get_contents( $log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+		return ! empty( $data ) ? $data : esc_html__( 'Active log is empty.', 'homey-channel-sync' );
 	}
 
 	/**
