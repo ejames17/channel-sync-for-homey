@@ -5,7 +5,19 @@
 
 Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
 
-**Homey Channel Sync** is a high-integrity, modular synchronization engine designed to bridge the gap between Favethemes' popular [Homey Booking WordPress Theme](https://themeforest.net/item/homey-booking-wordpress-theme/23338013) and leading Property Management Systems (PMS) or Channel Managers, starting with **Beds24**.
+**Homey Channel Sync** connects the [Homey Booking WordPress Theme](https://themeforest.net/item/homey-booking-wordpress-theme/23338013) with Property Management Systems (PMS) like Beds24 to enable automated dynamic daily pricing, rate syncs, and real-time reservation management.
+
+Have a bug to report or a feature request? Please submit it to our [Public Bug & Feature Tracker](https://github.com/ejames17/homey-channel-sync/issues).
+
+---
+
+## 🗳️ Community Voting & Premium Roadmap
+
+We are actively planning expansions! Support for other major Property Management Systems and other premium WordPress vacation booking themes will be coming soon as a **paid/premium upgrade**. 
+
+Help shape our development by voting on what we build next:
+* **🗳️ Vote for Next PMS/Channel Integration:** [Beds24, Guesty, OwnerRez, Hostaway, Cloudbeds Discussion](https://github.com/ejames17/homey-channel-sync/discussions/1)
+* **🗳️ Vote for Next WordPress Booking Theme Support:** [Homey, RealHomes, Houzez, Traveler Discussion](https://github.com/ejames17/homey-channel-sync/discussions/2)
 
 ---
 
@@ -38,7 +50,7 @@ Seamless channel management, dynamic pricing, and reservation sync engine connec
 * **Transparent Breakdown Dropdowns:** Appends a slide-toggle daily pricing detail grid directly inside checkout summary panels.
 * **Flexible Schedules:** Configure WP-Cron background fetch intervals (12 Hours, Daily, Weekly, Monthly) with a single click.
 * **Manual Force Trigger:** Execute instant, real-time rate synchronizations on-demand with a visual ajax progress indicator.
-* **Developer Friendly & Modular:** Extensible, driver-based adapter design ready for future channel managers (Guesty, OwnerRez, Hostaway, Cloudbeds).
+* **Developer Friendly & Modular:** Extensible, driver-based adapter design ready for future channel managers and WordPress themes.
 
 ---
 
@@ -68,12 +80,7 @@ To guarantee the structural integrity of your changes, we use a robust Playwrigh
 
 ## 🤝 Contributing & Support
 
-We welcome contributions of any size! If you want to expand support for other Property Management Systems (e.g. Guesty, Cloudbeds, OwnerRez):
-1. Create a class that implements `Homey_Sync_Adapter_Interface` under `includes/interfaces/`.
-2. Register your new driver under `includes/adapters/` and update settings selectors.
-3. Submit a Pull Request.
-
-For bugs or feature requests, please open a GitHub Issue or utilize `/bug` commands inside the CLI.
+We welcome contributions of any size! For bugs or feature requests, please open a GitHub Issue or utilize `/bug` commands inside the CLI.
 
 ---
 

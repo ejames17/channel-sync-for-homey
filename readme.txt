@@ -17,6 +17,15 @@ Automate your property rates, sync availability, and connect Beds24 & PMS channe
 
 For vacation rental owners, boutique hotels, and multi-property managers, manual price updates are a thing of the past. Homey Channel Sync automatically fetches your latest daily pricing structures from Beds24 and overlays them right on your front-end calendar grids, ensures checkout breakdown transparency, and syncs nightly base rate defaults in the background.
 
+Have a bug to report or a feature request? Please submit it to our [Public GitHub Repository](https://github.com/ejames17/homey-channel-sync/issues).
+
+=== Community Voting & Premium Roadmap ===
+We are actively planning expansions! Support for other major Property Management Systems (Guesty, OwnerRez, Hostaway, Cloudbeds, etc.) and other premium WordPress vacation booking themes will be coming soon as a paid/premium upgrade. 
+
+Help shape our development by voting on what we build next:
+* **Vote for Next PMS/Channel Integration:** [Beds24, Guesty, OwnerRez, Hostaway, Cloudbeds Discussion](https://github.com/ejames17/homey-channel-sync/discussions/1)
+* **Vote for Next WordPress Booking Theme Support:** [Homey, RealHomes, Houzez, Traveler Discussion](https://github.com/ejames17/homey-channel-sync/discussions/2)
+
 === Key Features ===
 * **Beds24 V2 API Integration:** Robust connection utilizing Beds24's secure, modern REST V2 API with automatic self-healing token refresh sequences.
 * **Fuzzy Autocompletion:** Instantly matches your WordPress Homey listings with external Beds24 properties and rooms.
@@ -25,7 +34,7 @@ For vacation rental owners, boutique hotels, and multi-property managers, manual
 * **Transparent Breakdown Dropdowns:** Appends a slide-toggle daily pricing detail grid directly inside checkout summary panels.
 * **Flexible Schedules:** Configure WP-Cron background fetch intervals (12 Hours, Daily, Weekly, Monthly) with a single click.
 * **Manual Force Trigger:** Execute instant, real-time rate synchronizations on-demand with a visual ajax progress indicator.
-* **Developer Friendly & Modular:** Extensible, driver-based adapter design ready for future channel managers (Guesty, OwnerRez, Hostaway, Cloudbeds).
+* **Developer Friendly & Modular:** Extensible, driver-based adapter design ready for future channel managers and WordPress themes.
 
 == Installation ==
 
@@ -38,7 +47,7 @@ For vacation rental owners, boutique hotels, and multi-property managers, manual
 == Frequently Asked Questions ==
 
 = Does this plugin require the Homey Theme? =
-Yes. This plugin specifically hooks into the custom post types (`homey_listing`, `homey_booking`) and database tables utilized by the Homey Booking WordPress Theme.
+Yes. This plugin specifically hooks into the custom post types (`homey_listing`, `homey_booking`) and database tables utilized by the Homey Booking WordPress Theme. Support for other themes is planned and you can vote for your favorite theme on our community board.
 
 = Will making API requests slow down my website? =
 Not at all. This plugin implements a strict caching and background execution design. Live API requests are handled by background WP-Cron intervals and cached securely in post meta and transients. Website visitors will enjoy lightning-fast load times.

@@ -1109,6 +1109,24 @@ class Homey_Channel_Sync_Admin {
 
 			<?php settings_errors( 'homey_sync_messages' ); ?>
 
+			<!-- Community Voting Banner -->
+			<div class="homey-sync-voting-banner" style="background:#fff; border-left:4px solid #f15a24; padding:15px 20px; margin: 15px 0 20px 0; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:space-between; border-radius:3px;">
+				<div style="flex-grow:1; padding-right:20px;">
+					<h3 style="margin:0 0 5px 0; color:#1e1e1c; font-size:15px; font-weight:600;"><?php echo esc_html__( 'Help Shape Homey Channel Sync Premium!', 'homey-channel-sync' ); ?></h3>
+					<p style="margin:0; font-size:13px; color:#50575e; line-height:1.4;">
+						<?php echo esc_html__( 'We are actively planning support for other major Property Management Systems (PMS) and additional vacation booking WordPress themes as premium paid solutions. Your vote decides our roadmap!', 'homey-channel-sync' ); ?>
+					</p>
+				</div>
+				<div style="display:flex; gap:10px; flex-shrink:0;">
+					<a href="https://github.com/ejames17/homey-channel-sync/discussions/1" target="_blank" class="button button-primary" style="background:#f15a24; border-color:#f15a24; font-weight:500; text-shadow:none; box-shadow:none; color: #fff;">
+						<?php echo esc_html__( 'Vote on Next PMS', 'homey-channel-sync' ); ?> 🗳️
+					</a>
+					<a href="https://github.com/ejames17/homey-channel-sync/discussions/2" target="_blank" class="button button-secondary" style="border-color:#f15a24; color:#f15a24; font-weight:500;">
+						<?php echo esc_html__( 'Vote on Next Theme', 'homey-channel-sync' ); ?> 🗳️
+					</a>
+				</div>
+			</div>
+
 			<h2 class="nav-tab-wrapper">
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'channels', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'channels' ? 'nav-tab-active' : ''; ?>">
 					<?php echo esc_html__( '1. Channel & API Credentials', 'homey-channel-sync' ); ?>
