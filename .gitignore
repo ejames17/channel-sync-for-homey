@@ -1,4 +1,5 @@
 # Local development ignore rules
+GEMINI.md
 debug.log
 .DS_Store
 screenshots/development/
