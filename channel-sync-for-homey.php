@@ -7,10 +7,9 @@
  * Author:            ejames17
  * License:           GPLv2 or later
  * Text Domain:       channel-sync-for-homey
- * Domain Path:       /languages
  * Requires PHP:      8.0
  * Requires at least: 6.0
- * Tested up to:      6.6
+ * Tested up to:      7.1
  *
  * @package           HomeyChannelSync
  */
@@ -87,7 +86,6 @@ final class Homey_Channel_Sync {
 
 		// Hook plugin load actions
 		add_action( 'plugins_loaded', array( $this, 'init_plugin' ) );
-		add_action( 'init', array( $this, 'load_text_domain' ) );
 
 		// Register lifecycle hooks
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
@@ -150,17 +148,6 @@ final class Homey_Channel_Sync {
 			$this->admin = new Homey_Channel_Sync_Admin();
 		}
 		$this->cron = new Homey_Channel_Sync_Cron();
-	}
-
-	/**
-	 * Load translation text domains.
-	 */
-	public function load_text_domain(): void {
-		load_plugin_textdomain(
-			'channel-sync-for-homey',
-			false,
-			dirname( plugin_basename( __FILE__ ) ) . '/languages'
-		);
 	}
 
 	/**

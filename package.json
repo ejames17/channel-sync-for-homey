@@ -7,7 +7,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:api": "node --test tests/api/beds24-mock-api.test.js",
-    "wp:release": "zip -r ../channel-sync-for-homey.zip . -x '*.git*' '*.github*' '*development*' '*node_modules*' '*tests*' '*test-results*' '*.DS_Store' '*vendor/bin*' 'playwright*' 'GEMINI.md' '.env*' '*.log' "
+    "wp:release": "zip -r ../channel-sync-for-homey.zip . -x '.*' '.git/*' '.git' '.gitignore' '.github/*' '*development*' '*node_modules*' '*tests*' '*test-results*' '*.DS_Store' '*vendor/bin*' 'playwright*' 'GEMINI.md' '.env*' '*.log' "
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0"
