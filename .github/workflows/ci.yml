@@ -1,4 +1,4 @@
-name: CI Suite
+name: Playwright E2E & Unit Test Suite
 
 on:
   push:
