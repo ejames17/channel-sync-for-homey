@@ -1,0 +1,35 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Plugin Version
+        id: get_version
+        run: |
+          VERSION=$(grep -i "Version:" homey-channel-sync.php | head -n 1 | awk -F': ' '{print $2}' | tr -d '\r')
+          echo "VERSION=v$VERSION" >> $GITHUB_ENV
+          echo "Version extracted: $VERSION"
+
+      - name: Create Git Tag and GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Homey Channel Sync ${{ env.VERSION }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
