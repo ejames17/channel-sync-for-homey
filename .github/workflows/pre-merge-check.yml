@@ -1,0 +1,111 @@
+name: Pre-Merge Quality Gate
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  pre-merge-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+
+    - name: Version Consistency Check
+      run: |
+        php -r '
+          $plugin_content = file_get_contents("homey-channel-sync.php");
+          preg_match("/^[ \t]*\*[ \t]*Version:[ \t]*([0-9a-zA-Z.-]+)/m", $plugin_content, $matches_plugin);
+          $readme_content = file_get_contents("readme.txt");
+          preg_match("/^[ \t]*Stable tag:[ \t]*([0-9a-zA-Z.-]+)/m", $readme_content, $matches_readme);
+          
+          $plugin_version = isset($matches_plugin[1]) ? trim($matches_plugin[1]) : "";
+          $readme_version = isset($matches_readme[1]) ? trim($matches_readme[1]) : "";
+          
+          echo "Plugin Version: [" . $plugin_version . "]\n";
+          echo "Readme Version: [" . $readme_version . "]\n";
+          
+          if (empty($plugin_version) || empty($readme_version) || $plugin_version !== $readme_version) {
+              fwrite(STDERR, "❌ Version mismatch between homey-channel-sync.php and readme.txt!\n");
+              exit(1);
+          }
+          echo "✅ Versions match!\n";
+        '
+
+    - name: Security & Artifact Audit
+      run: |
+        php -r '
+          $files = scandir(".");
+          $failed = false;
+          $sensitive_patterns = [
+              "/^.*\.log$/i",
+              "/^\.env$/i",
+              "/^.*\.sql$/i",
+              "/^.*\.sql\.gz$/i",
+              "/^.*\.bak$/i",
+              "/^.*\.dump$/i",
+              "/^.*\.db$/i",
+              "/^.*\.sqlite$/i"
+          ];
+
+          foreach ($files as $file) {
+              if ($file === "." || $file === "..") {
+                  continue;
+              }
+              if (!is_file($file)) {
+                  continue;
+              }
+              foreach ($sensitive_patterns as $pattern) {
+                  if (preg_match($pattern, $file)) {
+                      fwrite(STDERR, "❌ Forbidden file found in root: $file\n");
+                      $failed = true;
+                  }
+              }
+          }
+          if ($failed) {
+              exit(1);
+          }
+          echo "✅ Security & Artifact Audit passed!\n";
+        '
+
+    - name: Strict File Guard Check
+      run: |
+        php -r '
+          $failed = false;
+          $dir = new RecursiveDirectoryIterator(".");
+          $iterator = new RecursiveIteratorIterator($dir);
+          $php_files = new RegexIterator($iterator, "/^.+\.php$/i", RecursiveRegexIterator::GET_MATCH);
+
+          foreach ($php_files as $file_match) {
+              $file = $file_match[0];
+              $normalized_file = str_replace("\\", "/", $file);
+              
+              if (str_contains($normalized_file, "/node_modules/") || str_contains($normalized_file, "/tests/") || str_contains($normalized_file, "./tests/")) {
+                  continue;
+              }
+              
+              $content = file_get_contents($file);
+              if (basename($file) === "uninstall.php") {
+                  if (!str_contains($content, "WP_UNINSTALL_PLUGIN")) {
+                      fwrite(STDERR, "❌ PHP security guard missing in: $file\n");
+                      $failed = true;
+                  }
+              } else {
+                  if (!preg_match("/defined\s*\(\s*[\x27\x22]ABSPATH[\x27\x22]\s*\)/i", $content)) {
+                      fwrite(STDERR, "❌ PHP security guard ABSPATH missing in: $file\n");
+                      $failed = true;
+                  }
+              }
+          }
+
+          if ($failed) {
+              exit(1);
+          }
+          echo "✅ Strict PHP file guard check passed!\n";
+        '
