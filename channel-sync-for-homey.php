@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name:       Homey Channel Sync
- * Plugin URI:        https://github.com/ejames17/homey-channel-sync
- * Description:       Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
+ * Plugin Name:       Channel Sync for Homey
+ * Plugin URI:        https://github.com/ejames17/channel-sync-for-homey
+ * Description:       Synchronize Beds24 channels and availability for the Homey theme.
  * Version:           1.0.0
  * Author:            ejames17
  * License:           GPLv2 or later
- * Text Domain:       homey-channel-sync
+ * Text Domain:       channel-sync-for-homey
  * Domain Path:       /languages
  * Requires PHP:      8.0
  * Requires at least: 6.0
@@ -157,7 +157,7 @@ final class Homey_Channel_Sync {
 	 */
 	public function load_text_domain(): void {
 		load_plugin_textdomain(
-			'homey-channel-sync',
+			'channel-sync-for-homey',
 			false,
 			dirname( plugin_basename( __FILE__ ) ) . '/languages'
 		);
@@ -172,7 +172,7 @@ final class Homey_Channel_Sync {
 		// Check PHP Version compatibility
 		if ( PHP_VERSION_ID < 80000 ) {
 			deactivate_plugins( plugin_basename( __FILE__ ) );
-			wp_die( esc_html__( 'Homey Channel Sync requires PHP version 8.0 or higher. Installation aborted.', 'homey-channel-sync' ) );
+			wp_die( esc_html__( 'Homey Channel Sync requires PHP version 8.0 or higher. Installation aborted.', 'channel-sync-for-homey' ) );
 		}
 
 		// Load default settings if not already defined
@@ -755,7 +755,7 @@ final class Homey_Channel_Sync {
 				<?php
 				echo sprintf(
 					/* translators: 1: Current PHP version */
-					esc_html__( 'Homey Channel Sync deactivated. This plugin requires PHP version 8.0+; you are currently running version %s.', 'homey-channel-sync' ),
+					esc_html__( 'Homey Channel Sync deactivated. This plugin requires PHP version 8.0+; you are currently running version %s.', 'channel-sync-for-homey' ),
 					esc_html( PHP_VERSION )
 				);
 				?>

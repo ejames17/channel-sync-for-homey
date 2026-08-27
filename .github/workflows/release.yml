@@ -19,7 +19,7 @@ jobs:
       - name: Extract Plugin Version
         id: get_version
         run: |
-          VERSION=$(grep -i "Version:" homey-channel-sync.php | head -n 1 | awk -F': ' '{print $2}' | tr -d '\r')
+          VERSION=$(grep -i "Version:" channel-sync-for-homey.php | head -n 1 | awk -F': ' '{print $2}' | tr -d '\r')
           echo "VERSION=v$VERSION" >> $GITHUB_ENV
           echo "Version extracted: $VERSION"
 
@@ -27,7 +27,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.VERSION }}
-          name: Homey Channel Sync ${{ env.VERSION }}
+          name: Channel Sync for Homey ${{ env.VERSION }}
           generate_release_notes: true
           draft: false
           prerelease: false

@@ -1,12 +1,13 @@
 {
-  "name": "homey-channel-sync-e2e",
+  "name": "channel-sync-for-homey-e2e",
   "version": "1.0.0",
-  "description": "Playwright End-to-End Testing Suite for Homey Channel Sync WordPress Plugin.",
+  "description": "Playwright End-to-End Testing Suite for Channel Sync for Homey WordPress Plugin.",
   "type": "module",
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:api": "node --test tests/api/beds24-mock-api.test.js"
+    "test:api": "node --test tests/api/beds24-mock-api.test.js",
+    "wp:release": "zip -r ../channel-sync-for-homey.zip . -x '*.git*' '*.github*' '*development*' '*node_modules*' '*tests*' '*test-results*' '*.DS_Store' '*vendor/bin*' 'playwright*' 'GEMINI.md' '.env*' '*.log' "
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0"

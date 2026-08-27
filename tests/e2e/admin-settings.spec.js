@@ -11,7 +11,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 
 	test.beforeEach(async ({ page }) => {
 		// Navigate to primary plugin settings screen (prefixed for Bedrock if set)
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey`);
 
 		// Fail-safe: If redirected to login, perform inline authentication automatically!
 		if (page.url().includes('wp-login.php')) {
@@ -24,7 +24,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 			await page.waitForURL(/wp-admin/);
 			
 			// Re-navigate to settings page
-			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync`);
+			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey`);
 		}
 	});
 
@@ -69,7 +69,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 	// =========================================================================
 	test('Tab 2 - Listing Mappings, Fuzzy Auto-Matcher, & Manual Toggles', async ({ page }) => {
 		// 1. Navigate directly to Tab 2
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=mappings`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=mappings`);
 		const activeTab = page.locator('.nav-tab-active');
 		await expect(activeTab).toContainText('2. Listing Room Mappings');
 
@@ -133,7 +133,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 	// =========================================================================
 	test('Tab 3 - Sync Toggles, WP-Cron Intervals, & Manual Force Trigger', async ({ page }) => {
 		// 1. Navigate directly to Tab 3
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=settings`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=settings`);
 		const activeTab = page.locator('.nav-tab-active');
 		await expect(activeTab).toContainText('3. Sync Configuration');
 
@@ -178,7 +178,7 @@ test.describe('Homey Channel Sync - WP-Admin Settings Page', () => {
 	// =========================================================================
 	test('Tab 4 - Debug Logs Terminal stream, Download & AJAX Clearing', async ({ page }) => {
 		// 1. Navigate directly to Tab 4
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=logs`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=logs`);
 		const activeTab = page.locator('.nav-tab-active');
 		await expect(activeTab).toContainText('4. Debug Logs');
 

@@ -130,7 +130,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 
 	test.beforeEach(async ({ page }) => {
 		// Navigate to primary plugin settings screen (prefixed for Bedrock if set)
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey`);
 
 		// Fail-safe: If redirected to login, perform inline authentication automatically!
 		if (page.url().includes('wp-login.php')) {
@@ -143,7 +143,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			await page.waitForURL(/wp-admin/);
 			
 			// Re-navigate to settings page
-			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync`);
+			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey`);
 		}
 	});
 
@@ -292,7 +292,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 
 	test('3. Revert to Theme Default (Feature Toggle OFF)', async ({ page }) => {
 		// 1. Navigate to admin sync configuration tab
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=settings`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=settings`);
 
 		// Fail-safe: If redirected to login, perform inline authentication automatically!
 		if (page.url().includes('wp-login.php')) {
@@ -303,7 +303,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 			await page.fill('#user_pass', password);
 			await page.click('#wp-submit');
 			await page.waitForURL(/wp-admin/);
-			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=settings`);
+			await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=settings`);
 		}
 
 		// 2. Uncheck Dynamic Daily Pricing Sync Checkbox and save
@@ -361,7 +361,7 @@ test.describe('Homey Front-End - Guest Booking Flow & Price Overlays', () => {
 		}
 
 		// 6. Restore system settings (re-enable sync) to leave the environment clean
-		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=homey-channel-sync&tab=settings`);
+		await page.goto(`${wpPrefix}/wp-admin/admin.php?page=channel-sync-for-homey&tab=settings`);
 		await priceSyncCheckbox.check();
 		await page.locator('input[type="submit"][name="submit_save"]').click();
 		await expect(page.locator('.notice-success, .updated')).toBeVisible();

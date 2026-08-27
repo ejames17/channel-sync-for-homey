@@ -20,7 +20,7 @@ jobs:
     - name: Version Consistency Check
       run: |
         php -r '
-          $plugin_content = file_get_contents("homey-channel-sync.php");
+          $plugin_content = file_get_contents("channel-sync-for-homey.php");
           preg_match("/^[ \t]*\*[ \t]*Version:[ \t]*([0-9a-zA-Z.-]+)/m", $plugin_content, $matches_plugin);
           $readme_content = file_get_contents("readme.txt");
           preg_match("/^[ \t]*Stable tag:[ \t]*([0-9a-zA-Z.-]+)/m", $readme_content, $matches_readme);
@@ -32,7 +32,7 @@ jobs:
           echo "Readme Version: [" . $readme_version . "]\n";
           
           if (empty($plugin_version) || empty($readme_version) || $plugin_version !== $readme_version) {
-              fwrite(STDERR, "❌ Version mismatch between homey-channel-sync.php and readme.txt!\n");
+              fwrite(STDERR, "❌ Version mismatch between channel-sync-for-homey.php and readme.txt!\n");
               exit(1);
           }
           echo "✅ Versions match!\n";
