@@ -1,13 +1,13 @@
-# Homey Channel Sync
+# Channel Sync for Homey
 
-[![CI Status (Master)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml)
-[![CI Status (Development)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/homey-channel-sync/actions/workflows/ci.yml)
+[![Playwright E2E & Unit Tests (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml)
+[![Playwright E2E & Unit Tests (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml)
 
 Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
 
 **Homey Channel Sync** connects the [Homey Booking WordPress Theme](https://themeforest.net/item/homey-booking-wordpress-theme/23338013) with Property Management Systems (PMS) like Beds24 to enable automated dynamic daily pricing, rate syncs, and real-time reservation management.
 
-Have a bug to report or a feature request? Please submit it to our [Public Bug & Feature Tracker](https://github.com/ejames17/homey-channel-sync/issues).
+Have a bug to report or a feature request? Please submit it to our [Public Bug & Feature Tracker](https://github.com/ejames17/channel-sync-for-homey/issues).
 
 ---
 
@@ -16,8 +16,8 @@ Have a bug to report or a feature request? Please submit it to our [Public Bug &
 We are actively planning expansions! Support for other major Property Management Systems and other premium WordPress vacation booking themes will be coming soon as a **paid/premium upgrade**. 
 
 Help shape our development by voting on what we build next:
-* **🗳️ Vote for Next PMS/Channel Integration:** [Beds24, Guesty, OwnerRez, Hostaway, Cloudbeds Discussion](https://github.com/ejames17/homey-channel-sync/discussions/1)
-* **🗳️ Vote for Next WordPress Booking Theme Support:** [Homey, RealHomes, Houzez, Traveler Discussion](https://github.com/ejames17/homey-channel-sync/discussions/2)
+* **🗳️ Vote for Next PMS/Channel Integration:** [Beds24, Guesty, OwnerRez, Hostaway, Cloudbeds Discussion](https://github.com/ejames17/channel-sync-for-homey/discussions/1)
+* **🗳️ Vote for Next WordPress Booking Theme Support:** [Homey, RealHomes, Houzez, Traveler Discussion](https://github.com/ejames17/channel-sync-for-homey/discussions/2)
 
 ---
 
@@ -60,7 +60,7 @@ Help shape our development by voting on what we build next:
 1. Clone this repository into your WordPress local site's plugins directory:
    ```bash
    cd wp-content/plugins/
-   git clone https://github.com/ejames17/homey-channel-sync.git
+   git clone https://github.com/ejames17/channel-sync-for-homey.git
    ```
 2. Activate the plugin via WordPress Admin dashboard.
 3. Configure credentials under **Homey > Channel Sync** in your sidebar.

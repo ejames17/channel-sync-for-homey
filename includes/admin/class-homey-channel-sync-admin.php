@@ -82,10 +82,10 @@ class Homey_Channel_Sync_Admin {
 		if ( ! post_type_exists( 'listing' ) ) {
 			// Fallback to top-level menu if Homey theme listings are not defined
 			add_menu_page(
-				esc_html__( 'Homey Sync', 'homey-channel-sync' ),
-				esc_html__( 'Homey Sync', 'homey-channel-sync' ),
+				esc_html__( 'Homey Sync', 'channel-sync-for-homey' ),
+				esc_html__( 'Homey Sync', 'channel-sync-for-homey' ),
 				'manage_options',
-				'homey-channel-sync',
+				'channel-sync-for-homey',
 				array( $this, 'render_settings_page' ),
 				'dashicons-update',
 				30
@@ -93,10 +93,10 @@ class Homey_Channel_Sync_Admin {
 		} else {
 			add_submenu_page(
 				$parent_slug,
-				esc_html__( 'Channel Sync Settings', 'homey-channel-sync' ),
-				esc_html__( 'Channel Sync', 'homey-channel-sync' ),
+				esc_html__( 'Channel Sync Settings', 'channel-sync-for-homey' ),
+				esc_html__( 'Channel Sync', 'channel-sync-for-homey' ),
 				'manage_options',
-				'homey-channel-sync',
+				'channel-sync-for-homey',
 				array( $this, 'render_settings_page' )
 			);
 		}
@@ -108,7 +108,7 @@ class Homey_Channel_Sync_Admin {
 	 * @param string $hook_suffix Page hook context.
 	 */
 	public function enqueue_admin_assets( string $hook_suffix ): void {
-		if ( ! str_contains( $hook_suffix, 'homey-channel-sync' ) ) {
+		if ( ! str_contains( $hook_suffix, 'channel-sync-for-homey' ) ) {
 			return;
 		}
 
@@ -668,16 +668,16 @@ class Homey_Channel_Sync_Admin {
 	public function register_settings_and_save(): void {
 		register_setting( 'homey_channel_sync_group', 'homey_channel_sync_options' );
 
-		$settings_url = admin_url( 'admin.php?page=homey-channel-sync' );
+		$settings_url = admin_url( 'admin.php?page=channel-sync-for-homey' );
 
 		// Process Log Download Request on admin_init (defensive security checks)
 		if ( isset( $_GET['action_download_logs'] ) && '1' === $_GET['action_download_logs'] ) {
 			if ( ! isset( $_GET['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['security'] ) ), 'homey_sync_download_logs_nonce' ) ) {
-				wp_die( esc_html__( 'Nonce verification failed.', 'homey-channel-sync' ) );
+				wp_die( esc_html__( 'Nonce verification failed.', 'channel-sync-for-homey' ) );
 			}
 
 			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html__( 'Unauthorized access.', 'homey-channel-sync' ) );
+				wp_die( esc_html__( 'Unauthorized access.', 'channel-sync-for-homey' ) );
 			}
 
 			$logger   = Homey_Sync_Logger::get_instance();
@@ -694,7 +694,7 @@ class Homey_Channel_Sync_Admin {
 				readfile( $log_file );
 				exit;
 			} else {
-				wp_die( esc_html__( 'Active monthly log file is empty or does not exist.', 'homey-channel-sync' ) );
+				wp_die( esc_html__( 'Active monthly log file is empty or does not exist.', 'channel-sync-for-homey' ) );
 			}
 		}
 
@@ -704,11 +704,11 @@ class Homey_Channel_Sync_Admin {
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Unauthorized access.', 'homey-channel-sync' ) );
+			wp_die( esc_html__( 'Unauthorized access.', 'channel-sync-for-homey' ) );
 		}
 
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['homey_sync_nonce_field'] ) ), 'homey_sync_save_action' ) ) {
-			wp_die( esc_html__( 'Nonce verification failed.', 'homey-channel-sync' ) );
+			wp_die( esc_html__( 'Nonce verification failed.', 'channel-sync-for-homey' ) );
 		}
 
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'channels';
@@ -717,7 +717,7 @@ class Homey_Channel_Sync_Admin {
 			$this->options['active_channel'] = sanitize_text_field( wp_unslash( $_POST['active_channel'] ?? 'beds24' ) );
 			update_option( 'homey_channel_sync_options', $this->options );
 
-			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Active channel updated successfully.', 'homey-channel-sync' ), 'updated' );
+			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Active channel updated successfully.', 'channel-sync-for-homey' ), 'updated' );
 		}
 
 		if ( $current_tab === 'mappings' ) {
@@ -755,7 +755,7 @@ class Homey_Channel_Sync_Admin {
 					add_action( 'updated_post_meta', array( 'Homey_Listing_Post_Type', 'save_guests_meta' ), 10, 4 );
 				}
 			}
-			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Listing and Room mappings updated successfully.', 'homey-channel-sync' ), 'updated' );
+			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Listing and Room mappings updated successfully.', 'channel-sync-for-homey' ), 'updated' );
 		}
 
 		if ( $current_tab === 'settings' ) {
@@ -780,13 +780,13 @@ class Homey_Channel_Sync_Admin {
 				$this->revert_to_default_pricing();
 			}
 
-			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Sync Schedules and Feature toggles updated.', 'homey-channel-sync' ), 'updated' );
+			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Sync Schedules and Feature toggles updated.', 'channel-sync-for-homey' ), 'updated' );
 		}
 
 		if ( $current_tab === 'logs' ) {
 			$this->options['enable_debug_log'] = isset( $_POST['enable_debug_log'] ) ? '1' : '0';
 			update_option( 'homey_channel_sync_options', $this->options );
-			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Logging configuration saved successfully.', 'homey-channel-sync' ), 'updated' );
+			add_settings_error( 'homey_sync_messages', 'homey_sync_updated', esc_html__( 'Logging configuration saved successfully.', 'channel-sync-for-homey' ), 'updated' );
 		}
 	}
 
@@ -860,13 +860,13 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$invite_code = sanitize_text_field( wp_unslash( $_POST['invite_code'] ?? '' ) );
 
 		if ( empty( $invite_code ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Invite code cannot be empty.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Invite code cannot be empty.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$adapter = new Homey_Channel_Sync_Beds24_Adapter();
@@ -883,7 +883,7 @@ class Homey_Channel_Sync_Admin {
 		$connection_ok    = $adapter->test_connection( $test_credentials );
 
 		if ( ! $connection_ok ) {
-			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Tokens exchanged, but properties endpoint test failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Tokens exchanged, but properties endpoint test failed: %s', 'channel-sync-for-homey' ), $adapter->get_last_error() ) ) );
 		}
 
 		// Save tokens on successful test
@@ -897,7 +897,7 @@ class Homey_Channel_Sync_Admin {
 
 		wp_send_json_success(
 			array(
-				'message' => esc_html__( 'Connection established successfully! Exchanged invite code for valid API credentials.', 'homey-channel-sync' ),
+				'message' => esc_html__( 'Connection established successfully! Exchanged invite code for valid API credentials.', 'channel-sync-for-homey' ),
 			)
 		);
 	}
@@ -909,13 +909,13 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$longlife_token = sanitize_text_field( wp_unslash( $_POST['longlife_token'] ?? '' ) );
 
 		if ( empty( $longlife_token ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Long-life token cannot be empty.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Long-life token cannot be empty.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$adapter          = new Homey_Channel_Sync_Beds24_Adapter();
@@ -925,7 +925,7 @@ class Homey_Channel_Sync_Admin {
 		$connection_ok    = $adapter->test_connection( $test_credentials );
 
 		if ( ! $connection_ok ) {
-			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Properties endpoint check failed: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Properties endpoint check failed: %s', 'channel-sync-for-homey' ), $adapter->get_last_error() ) ) );
 		}
 
 		// Save on success
@@ -939,7 +939,7 @@ class Homey_Channel_Sync_Admin {
 
 		wp_send_json_success(
 			array(
-				'message' => esc_html__( 'Connection established successfully using your Long-Life Token!', 'homey-channel-sync' ),
+				'message' => esc_html__( 'Connection established successfully using your Long-Life Token!', 'channel-sync-for-homey' ),
 			)
 		);
 	}
@@ -951,7 +951,7 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_auth_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$this->options['beds24_invite_code']             = '';
@@ -963,7 +963,7 @@ class Homey_Channel_Sync_Admin {
 
 		wp_send_json_success(
 			array(
-				'message' => esc_html__( 'Successfully disconnected and cleared API credentials.', 'homey-channel-sync' ),
+				'message' => esc_html__( 'Successfully disconnected and cleared API credentials.', 'channel-sync-for-homey' ),
 			)
 		);
 	}
@@ -975,14 +975,14 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_test_connection_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$adapter      = new Homey_Channel_Sync_Beds24_Adapter();
 		$access_token = $adapter->get_valid_access_token( $this->options );
 
 		if ( empty( $access_token ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'No valid access token available. Please reconnect.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'No valid access token available. Please reconnect.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$success = $adapter->test_connection(
@@ -992,9 +992,9 @@ class Homey_Channel_Sync_Admin {
 		);
 
 		if ( $success ) {
-			wp_send_json_success( array( 'message' => esc_html__( 'Connection successfully verified with Beds24 properties!', 'homey-channel-sync' ) ) );
+			wp_send_json_success( array( 'message' => esc_html__( 'Connection successfully verified with Beds24 properties!', 'channel-sync-for-homey' ) ) );
 		} else {
-			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to connect: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to connect: %s', 'channel-sync-for-homey' ), $adapter->get_last_error() ) ) );
 		}
 	}
 
@@ -1005,7 +1005,7 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_inventory_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$force_refresh = isset( $_POST['force_refresh'] ) && '1' === $_POST['force_refresh'];
@@ -1014,7 +1014,7 @@ class Homey_Channel_Sync_Admin {
 		$access_token = $adapter->get_valid_access_token( $this->options );
 
 		if ( empty( $access_token ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Beds24 API connection is inactive. Please connect on Tab 1.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Beds24 API connection is inactive. Please connect on Tab 1.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$inventory = $adapter->get_properties_and_rooms(
@@ -1025,13 +1025,13 @@ class Homey_Channel_Sync_Admin {
 		);
 
 		if ( false === $inventory ) {
-			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to retrieve inventory: %s', 'homey-channel-sync' ), $adapter->get_last_error() ) ) );
+			wp_send_json_error( array( 'message' => sprintf( esc_html__( 'Failed to retrieve inventory: %s', 'channel-sync-for-homey' ), $adapter->get_last_error() ) ) );
 		}
 
 		wp_send_json_success(
 			array(
 				'inventory' => $inventory,
-				'message'   => esc_html__( 'Inventory fetched successfully.', 'homey-channel-sync' ),
+				'message'   => esc_html__( 'Inventory fetched successfully.', 'channel-sync-for-homey' ),
 			)
 		);
 	}
@@ -1043,16 +1043,16 @@ class Homey_Channel_Sync_Admin {
 		check_ajax_referer( 'homey_sync_clear_logs_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized access privileges.', 'channel-sync-for-homey' ) ) );
 		}
 
 		$logger  = Homey_Sync_Logger::get_instance();
 		$success = $logger->clear_current_log();
 
 		if ( $success ) {
-			wp_send_json_success( array( 'message' => esc_html__( 'Active monthly log file emptied successfully!', 'homey-channel-sync' ) ) );
+			wp_send_json_success( array( 'message' => esc_html__( 'Active monthly log file emptied successfully!', 'channel-sync-for-homey' ) ) );
 		} else {
-			wp_send_json_error( array( 'message' => esc_html__( 'Failed to empty log file. Please check folder permissions.', 'homey-channel-sync' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Failed to empty log file. Please check folder permissions.', 'channel-sync-for-homey' ) ) );
 		}
 	}
 
@@ -1061,11 +1061,11 @@ class Homey_Channel_Sync_Admin {
 	 */
 	public function render_settings_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Access denied.', 'homey-channel-sync' ) );
+			wp_die( esc_html__( 'Access denied.', 'channel-sync-for-homey' ) );
 		}
 
 		$active_tab   = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'channels';
-		$settings_url = admin_url( 'admin.php?page=homey-channel-sync' );
+		$settings_url = admin_url( 'admin.php?page=channel-sync-for-homey' );
 
 		$beds24_connected = ! empty( $this->options['beds24_access_token'] );
 		$auth_method      = $this->options['beds24_auth_method'] ?? 'exchange';
@@ -1104,7 +1104,7 @@ class Homey_Channel_Sync_Admin {
 		<div class="wrap homey-sync-wrap">
 			<div class="homey-sync-header">
 				<h1>Homey Channel Sync <span class="homey-sync-logo-text">| PMS Adapter Dashboard</span></h1>
-				<span class="homey-sync-badge"><?php echo esc_html__( 'Phase 1 Active', 'homey-channel-sync' ); ?></span>
+				<span class="homey-sync-badge"><?php echo esc_html__( 'Phase 1 Active', 'channel-sync-for-homey' ); ?></span>
 			</div>
 
 			<?php settings_errors( 'homey_sync_messages' ); ?>
@@ -1112,33 +1112,33 @@ class Homey_Channel_Sync_Admin {
 			<!-- Community Voting Banner -->
 			<div class="homey-sync-voting-banner" style="background:#fff; border-left:4px solid #f15a24; padding:15px 20px; margin: 15px 0 20px 0; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:space-between; border-radius:3px;">
 				<div style="flex-grow:1; padding-right:20px;">
-					<h3 style="margin:0 0 5px 0; color:#1e1e1c; font-size:15px; font-weight:600;"><?php echo esc_html__( 'Help Shape Homey Channel Sync Premium!', 'homey-channel-sync' ); ?></h3>
+					<h3 style="margin:0 0 5px 0; color:#1e1e1c; font-size:15px; font-weight:600;"><?php echo esc_html__( 'Help Shape Homey Channel Sync Premium!', 'channel-sync-for-homey' ); ?></h3>
 					<p style="margin:0; font-size:13px; color:#50575e; line-height:1.4;">
-						<?php echo esc_html__( 'We are actively planning support for other major Property Management Systems (PMS) and additional vacation booking WordPress themes as premium paid solutions. Your vote decides our roadmap!', 'homey-channel-sync' ); ?>
+						<?php echo esc_html__( 'We are actively planning support for other major Property Management Systems (PMS) and additional vacation booking WordPress themes as premium paid solutions. Your vote decides our roadmap!', 'channel-sync-for-homey' ); ?>
 					</p>
 				</div>
 				<div style="display:flex; gap:10px; flex-shrink:0;">
-					<a href="https://github.com/ejames17/homey-channel-sync/discussions/1" target="_blank" class="button button-primary" style="background:#f15a24; border-color:#f15a24; font-weight:500; text-shadow:none; box-shadow:none; color: #fff;">
-						<?php echo esc_html__( 'Vote on Next PMS', 'homey-channel-sync' ); ?> 🗳️
+					<a href="https://github.com/ejames17/channel-sync-for-homey/discussions/1" target="_blank" class="button button-primary" style="background:#f15a24; border-color:#f15a24; font-weight:500; text-shadow:none; box-shadow:none; color: #fff;">
+						<?php echo esc_html__( 'Vote on Next PMS', 'channel-sync-for-homey' ); ?> 🗳️
 					</a>
-					<a href="https://github.com/ejames17/homey-channel-sync/discussions/2" target="_blank" class="button button-secondary" style="border-color:#f15a24; color:#f15a24; font-weight:500;">
-						<?php echo esc_html__( 'Vote on Next Theme', 'homey-channel-sync' ); ?> 🗳️
+					<a href="https://github.com/ejames17/channel-sync-for-homey/discussions/2" target="_blank" class="button button-secondary" style="border-color:#f15a24; color:#f15a24; font-weight:500;">
+						<?php echo esc_html__( 'Vote on Next Theme', 'channel-sync-for-homey' ); ?> 🗳️
 					</a>
 				</div>
 			</div>
 
 			<h2 class="nav-tab-wrapper">
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'channels', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'channels' ? 'nav-tab-active' : ''; ?>">
-					<?php echo esc_html__( '1. Channel & API Credentials', 'homey-channel-sync' ); ?>
+					<?php echo esc_html__( '1. Channel & API Credentials', 'channel-sync-for-homey' ); ?>
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'mappings', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'mappings' ? 'nav-tab-active' : ''; ?>">
-					<?php echo esc_html__( '2. Listing Room Mappings', 'homey-channel-sync' ); ?>
+					<?php echo esc_html__( '2. Listing Room Mappings', 'channel-sync-for-homey' ); ?>
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'settings', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">
-					<?php echo esc_html__( '3. Sync Configuration', 'homey-channel-sync' ); ?>
+					<?php echo esc_html__( '3. Sync Configuration', 'channel-sync-for-homey' ); ?>
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'logs', $settings_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'logs' ? 'nav-tab-active' : ''; ?>">
-					<?php echo esc_html__( '4. Debug Logs', 'homey-channel-sync' ); ?>
+					<?php echo esc_html__( '4. Debug Logs', 'channel-sync-for-homey' ); ?>
 				</a>
 			</h2>
 
@@ -1150,64 +1150,64 @@ class Homey_Channel_Sync_Admin {
 				<!-- TAB 1: Channels and Credentials -->
 				<?php if ( $active_tab === 'channels' ) : ?>
 					<div class="homey-sync-card">
-						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Choose Active Channel Manager', 'homey-channel-sync' ); ?></h3>
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Choose Active Channel Manager', 'channel-sync-for-homey' ); ?></h3>
 
 						<div class="channel-grid">
 							<div class="channel-option selected">
 								<input type="radio" name="active_channel" value="beds24" checked />
 								<div class="channel-option-logo">🛏️</div>
 								<div class="channel-option-name">Beds24</div>
-								<span class="coming-soon-badge badge-active"><?php echo esc_html__( 'Active', 'homey-channel-sync' ); ?></span>
+								<span class="coming-soon-badge badge-active"><?php echo esc_html__( 'Active', 'channel-sync-for-homey' ); ?></span>
 							</div>
 
 							<div class="channel-option coming-soon-card">
 								<input type="radio" name="active_channel" value="guesty" disabled />
 								<div class="channel-option-logo">🏠</div>
 								<div class="channel-option-name">Guesty</div>
-								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span>
+								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span>
 							</div>
 
 							<div class="channel-option coming-soon-card">
 								<input type="radio" name="active_channel" value="ownerrez" disabled />
 								<div class="channel-option-logo">🔑</div>
 								<div class="channel-option-name">OwnerRez</div>
-								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span>
+								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span>
 							</div>
 
 							<div class="channel-option coming-soon-card">
 								<input type="radio" name="active_channel" value="cloudbeds" disabled />
 								<div class="channel-option-logo">☁️</div>
 								<div class="channel-option-name">Cloudbeds</div>
-								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span>
+								<span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span>
 							</div>
 						</div>
 
-						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Beds24 Authentication Settings', 'homey-channel-sync' ); ?></h3>
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Beds24 Authentication Settings', 'channel-sync-for-homey' ); ?></h3>
 						
 						<?php if ( $beds24_connected ) : ?>
 							<div class="homey-sync-status-box homey-sync-status-success">
 								<span>
-									<strong>✔️ <?php echo esc_html__( 'CONNECTED', 'homey-channel-sync' ); ?></strong> — 
+									<strong>✔️ <?php echo esc_html__( 'CONNECTED', 'channel-sync-for-homey' ); ?></strong> — 
 									<?php
 									if ( 'longlife' === $auth_method ) {
-										echo esc_html__( 'Active via read-only Long-Life Token', 'homey-channel-sync' );
+										echo esc_html__( 'Active via read-only Long-Life Token', 'channel-sync-for-homey' );
 									} else {
-										echo esc_html__( 'Active via dynamic OAuth Invite Code Exchange', 'homey-channel-sync' );
+										echo esc_html__( 'Active via dynamic OAuth Invite Code Exchange', 'channel-sync-for-homey' );
 									}
 									?>
 								</span>
 								<button type="button" class="button button-secondary homey-sync-disconnect-btn">
-									<?php echo esc_html__( 'Disconnect Channel', 'homey-channel-sync' ); ?>
+									<?php echo esc_html__( 'Disconnect Channel', 'channel-sync-for-homey' ); ?>
 								</button>
 							</div>
 
 							<table class="auth-details-table">
 								<tr>
-									<th><?php echo esc_html__( 'Auth Method', 'homey-channel-sync' ); ?></th>
+									<th><?php echo esc_html__( 'Auth Method', 'channel-sync-for-homey' ); ?></th>
 									<td><code><?php echo esc_html( strtoupper( $auth_method ) ); ?></code></td>
 								</tr>
 								<tr>
-									<th><?php echo esc_html__( 'Access Token', 'homey-channel-sync' ); ?></th>
+									<th><?php echo esc_html__( 'Access Token', 'channel-sync-for-homey' ); ?></th>
 									<td>
 										<code>
 											<?php
@@ -1219,7 +1219,7 @@ class Homey_Channel_Sync_Admin {
 								</tr>
 								<?php if ( 'exchange' === $auth_method ) : ?>
 									<tr>
-										<th><?php echo esc_html__( 'Token Expires At', 'homey-channel-sync' ); ?></th>
+										<th><?php echo esc_html__( 'Token Expires At', 'channel-sync-for-homey' ); ?></th>
 										<td>
 											<code>
 												<?php
@@ -1228,14 +1228,14 @@ class Homey_Channel_Sync_Admin {
 												?>
 											</code>
 											<?php if ( time() > $exp ) : ?>
-												<span style="color:#d63638; font-weight:600; margin-left: 10px;"><?php echo esc_html__( '(Expired - Auto refreshing on next run)', 'homey-channel-sync' ); ?></span>
+												<span style="color:#d63638; font-weight:600; margin-left: 10px;"><?php echo esc_html__( '(Expired - Auto refreshing on next run)', 'channel-sync-for-homey' ); ?></span>
 											<?php else : ?>
-												<span style="color:#46b450; font-weight:600; margin-left: 10px;"><?php echo esc_html__( '(Active)', 'homey-channel-sync' ); ?></span>
+												<span style="color:#46b450; font-weight:600; margin-left: 10px;"><?php echo esc_html__( '(Active)', 'channel-sync-for-homey' ); ?></span>
 											<?php endif; ?>
 										</td>
 									</tr>
 									<tr>
-										<th><?php echo esc_html__( 'Refresh Token', 'homey-channel-sync' ); ?></th>
+										<th><?php echo esc_html__( 'Refresh Token', 'channel-sync-for-homey' ); ?></th>
 										<td>
 											<code>
 												<?php
@@ -1250,24 +1250,24 @@ class Homey_Channel_Sync_Admin {
 
 							<div style="margin-top:20px;">
 								<button type="button" id="homey-sync-test-conn" class="button button-secondary">
-									<?php echo esc_html__( 'Verify Connection Status', 'homey-channel-sync' ); ?>
+									<?php echo esc_html__( 'Verify Connection Status', 'channel-sync-for-homey' ); ?>
 								</button>
 								<span class="spinner test-connection-loader"></span>
 							</div>
 						<?php else : ?>
 							<p class="description">
-								<?php echo esc_html__( 'Select your preferred connection method and supply your credentials to hook up Beds24 V2.', 'homey-channel-sync' ); ?>
+								<?php echo esc_html__( 'Select your preferred connection method and supply your credentials to hook up Beds24 V2.', 'channel-sync-for-homey' ); ?>
 							</p>
 
 							<table class="form-table">
 								<tr>
 									<th scope="row">
-										<label for="beds24_auth_method"><?php echo esc_html__( 'Authentication Method', 'homey-channel-sync' ); ?></label>
+										<label for="beds24_auth_method"><?php echo esc_html__( 'Authentication Method', 'channel-sync-for-homey' ); ?></label>
 									</th>
 									<td>
 										<select id="beds24_auth_method" name="beds24_auth_method">
-											<option value="exchange" <?php selected( $auth_method, 'exchange' ); ?>><?php echo esc_html__( 'Invite Code Exchange (Recommended)', 'homey-channel-sync' ); ?></option>
-											<option value="longlife" <?php selected( $auth_method, 'longlife' ); ?>><?php echo esc_html__( 'Long-Life Token (Read-Only)', 'homey-channel-sync' ); ?></option>
+											<option value="exchange" <?php selected( $auth_method, 'exchange' ); ?>><?php echo esc_html__( 'Invite Code Exchange (Recommended)', 'channel-sync-for-homey' ); ?></option>
+											<option value="longlife" <?php selected( $auth_method, 'longlife' ); ?>><?php echo esc_html__( 'Long-Life Token (Read-Only)', 'channel-sync-for-homey' ); ?></option>
 										</select>
 									</td>
 								</tr>
@@ -1280,26 +1280,26 @@ class Homey_Channel_Sync_Admin {
 										<strong>How to get an Invite Code:</strong> Log in to Beds24, navigate to <em>Settings > Marketplace > API</em>, click <strong>Generate Invite Code</strong>, select your desired scopes, and paste the code below. It will be immediately exchanged for standard API access and refresh tokens.
 										<p style="margin: 8px 0 0 0;">
 											<a href="#" id="homey-toggle-screenshot" style="color: #f15a24; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-												🔍 <?php echo esc_html__( 'Show Screenshot Walkthrough Guide', 'homey-channel-sync' ); ?>
+												🔍 <?php echo esc_html__( 'Show Screenshot Walkthrough Guide', 'channel-sync-for-homey' ); ?>
 											</a>
 										</p>
 										<div id="homey-screenshot-guide" style="display:none; margin-top: 15px; border: 1px solid #c3c4c7; border-radius: 4px; padding: 10px; background: #fff; max-width: 100%;">
-											<img src="<?php echo esc_url( plugins_url( 'screenshots/beds24_invite_code_masked.png', dirname( __DIR__, 2 ) . '/homey-channel-sync.php' ) ); ?>" style="max-width: 100%; height: auto; border: 1px solid #ccd0d4; border-radius: 3px;" alt="Beds24 Invite Code Location" />
+											<img src="<?php echo esc_url( plugins_url( 'screenshots/beds24_invite_code_masked.png', dirname( __DIR__, 2 ) . '/channel-sync-for-homey.php' ) ); ?>" style="max-width: 100%; height: auto; border: 1px solid #ccd0d4; border-radius: 3px;" alt="Beds24 Invite Code Location" />
 										</div>
 									</div>
 								</div>
 								<table class="form-table" style="margin-top:0;">
 									<tr>
-										<th scope="row"><label for="beds24_invite_code"><?php echo esc_html__( 'Beds24 Invite Code', 'homey-channel-sync' ); ?></label></th>
+										<th scope="row"><label for="beds24_invite_code"><?php echo esc_html__( 'Beds24 Invite Code', 'channel-sync-for-homey' ); ?></label></th>
 										<td>
 											<input type="text" id="beds24_invite_code" class="regular-text" placeholder="Paste your generated Invite Code" style="width: 80%;" />
-											<p class="description"><?php echo esc_html__( 'Invite codes are single-use only.', 'homey-channel-sync' ); ?></p>
+											<p class="description"><?php echo esc_html__( 'Invite codes are single-use only.', 'channel-sync-for-homey' ); ?></p>
 										</td>
 									</tr>
 								</table>
 								<div style="margin-top:15px;">
 									<button type="button" id="homey-sync-exchange-btn" class="button homey-sync-btn-primary">
-										🗝️ <?php echo esc_html__( 'Exchange Code & Connect', 'homey-channel-sync' ); ?>
+										🗝️ <?php echo esc_html__( 'Exchange Code & Connect', 'channel-sync-for-homey' ); ?>
 									</button>
 									<span class="spinner test-connection-loader"></span>
 								</div>
@@ -1314,7 +1314,7 @@ class Homey_Channel_Sync_Admin {
 								</div>
 								<table class="form-table" style="margin-top:0;">
 									<tr>
-										<th scope="row"><label for="beds24_longlife_token"><?php echo esc_html__( 'Long-Life Access Token', 'homey-channel-sync' ); ?></label></th>
+										<th scope="row"><label for="beds24_longlife_token"><?php echo esc_html__( 'Long-Life Access Token', 'channel-sync-for-homey' ); ?></label></th>
 										<td>
 											<input type="password" id="beds24_longlife_token" class="regular-text" placeholder="Enter your Long-Life Token" style="width: 80%;" />
 										</td>
@@ -1322,7 +1322,7 @@ class Homey_Channel_Sync_Admin {
 								</table>
 								<div style="margin-top:15px;">
 									<button type="button" id="homey-sync-longlife-btn" class="button homey-sync-btn-primary">
-										🔗 <?php echo esc_html__( 'Connect with Token', 'homey-channel-sync' ); ?>
+										🔗 <?php echo esc_html__( 'Connect with Token', 'channel-sync-for-homey' ); ?>
 									</button>
 									<span class="spinner test-connection-loader"></span>
 								</div>
@@ -1344,9 +1344,9 @@ class Homey_Channel_Sync_Admin {
 					$post_status = ( 'all' === $status_filter ) ? array( 'publish', 'draft', 'pending', 'private', 'future' ) : 'publish';
 					?>
 					<div class="homey-sync-card">
-						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Listing & Room Mappings', 'homey-channel-sync' ); ?></h3>
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Listing & Room Mappings', 'channel-sync-for-homey' ); ?></h3>
 						<p class="description">
-							<?php echo esc_html__( 'Map each Homey Listing to its corresponding Property ID and Room ID configured in the Beds24 PMS Dashboard.', 'homey-channel-sync' ); ?>
+							<?php echo esc_html__( 'Map each Homey Listing to its corresponding Property ID and Room ID configured in the Beds24 PMS Dashboard.', 'channel-sync-for-homey' ); ?>
 						</p>
 
 						<!-- Listing Status Radio Filter & Smart Actions Header -->
@@ -1354,14 +1354,14 @@ class Homey_Channel_Sync_Admin {
 							<div class="homey-sync-actions-left">
 								<!-- Listing Status Radio Filter -->
 								<div class="homey-sync-filter-wrap" style="background: #f6f7f7; padding: 10px 15px; border-radius: 4px; border: 1px solid #ccd0d4; display: flex; align-items: center; gap: 15px; margin:0;">
-									<strong style="color: #2c3338;"><?php echo esc_html__( 'Filter Status:', 'homey-channel-sync' ); ?></strong>
+									<strong style="color: #2c3338;"><?php echo esc_html__( 'Filter Status:', 'channel-sync-for-homey' ); ?></strong>
 									<label style="font-weight: 600; color: #1d2327; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
 										<input type="radio" name="listing_status_filter" value="publish" <?php checked( $status_filter, 'publish' ); ?> style="margin: 0;" />
-										<?php echo esc_html__( 'Only Published', 'homey-channel-sync' ); ?>
+										<?php echo esc_html__( 'Only Published', 'channel-sync-for-homey' ); ?>
 									</label>
 									<label style="font-weight: 600; color: #1d2327; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
 										<input type="radio" name="listing_status_filter" value="all" <?php checked( $status_filter, 'all' ); ?> style="margin: 0;" />
-										<?php echo esc_html__( 'All Statuses', 'homey-channel-sync' ); ?>
+										<?php echo esc_html__( 'All Statuses', 'channel-sync-for-homey' ); ?>
 									</label>
 								</div>
 							</div>
@@ -1369,17 +1369,17 @@ class Homey_Channel_Sync_Admin {
 							<div class="homey-sync-actions-right">
 								<?php if ( $beds24_connected ) : ?>
 									<button type="button" id="homey-sync-automatch-btn" class="button button-secondary">
-										✨ <?php echo esc_html__( 'Auto-Match Listings', 'homey-channel-sync' ); ?>
+										✨ <?php echo esc_html__( 'Auto-Match Listings', 'channel-sync-for-homey' ); ?>
 									</button>
 									<button type="button" id="homey-sync-refresh-inv-btn" class="button button-secondary">
-										🔄 <?php echo esc_html__( 'Refresh PMS Inventory', 'homey-channel-sync' ); ?>
+										🔄 <?php echo esc_html__( 'Refresh PMS Inventory', 'channel-sync-for-homey' ); ?>
 									</button>
 									<span class="spinner test-connection-loader" style="margin:0;"></span>
 								<?php endif; ?>
 
 								<label style="font-weight:600; color:#2c3338; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
 									<input type="checkbox" id="homey-pms-manual-toggle" value="1" />
-									<?php echo esc_html__( 'Manual Input Mode', 'homey-channel-sync' ); ?>
+									<?php echo esc_html__( 'Manual Input Mode', 'channel-sync-for-homey' ); ?>
 								</label>
 							</div>
 						</div>
@@ -1390,11 +1390,11 @@ class Homey_Channel_Sync_Admin {
 							<table class="widefat fixed striped" style="margin-top:20px;">
 								<thead>
 									<tr>
-										<th style="width: 70px;"><?php echo esc_html__( 'Thumbnail', 'homey-channel-sync' ); ?></th>
-										<th style="width: 30%;"><?php echo esc_html__( 'Listing Details', 'homey-channel-sync' ); ?></th>
-										<th><?php echo esc_html__( 'Channel Property ID', 'homey-channel-sync' ); ?></th>
-										<th><?php echo esc_html__( 'Channel Room ID', 'homey-channel-sync' ); ?></th>
-										<th><?php echo esc_html__( 'Last Sync Status', 'homey-channel-sync' ); ?></th>
+										<th style="width: 70px;"><?php echo esc_html__( 'Thumbnail', 'channel-sync-for-homey' ); ?></th>
+										<th style="width: 30%;"><?php echo esc_html__( 'Listing Details', 'channel-sync-for-homey' ); ?></th>
+										<th><?php echo esc_html__( 'Channel Property ID', 'channel-sync-for-homey' ); ?></th>
+										<th><?php echo esc_html__( 'Channel Room ID', 'channel-sync-for-homey' ); ?></th>
+										<th><?php echo esc_html__( 'Last Sync Status', 'channel-sync-for-homey' ); ?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -1416,9 +1416,9 @@ class Homey_Channel_Sync_Admin {
 												<strong>
 													<?php
 													if ( 'all' === $status_filter ) {
-														echo esc_html__( 'No Homey Listings of any status found in the database.', 'homey-channel-sync' );
+														echo esc_html__( 'No Homey Listings of any status found in the database.', 'channel-sync-for-homey' );
 													} else {
-														echo esc_html__( 'No published Homey Listings found in the database. Please create a listing or select "All Statuses" above.', 'homey-channel-sync' );
+														echo esc_html__( 'No published Homey Listings found in the database. Please create a listing or select "All Statuses" above.', 'channel-sync-for-homey' );
 													}
 													?>
 												</strong>
@@ -1451,7 +1451,7 @@ class Homey_Channel_Sync_Admin {
 													<!-- Dynamic Property Selector -->
 													<div class="homey-pms-dropdown-wrap">
 														<select class="homey-pms-property-select">
-															<option value=""><?php echo $beds24_connected ? esc_html__( '-- Select Property --', 'homey-channel-sync' ) : esc_html__( 'Connect API first', 'homey-channel-sync' ); ?></option>
+															<option value=""><?php echo $beds24_connected ? esc_html__( '-- Select Property --', 'channel-sync-for-homey' ) : esc_html__( 'Connect API first', 'channel-sync-for-homey' ); ?></option>
 														</select>
 													</div>
 													<!-- Fallback Manual Input -->
@@ -1463,7 +1463,7 @@ class Homey_Channel_Sync_Admin {
 													<!-- Dynamic Room Selector -->
 													<div class="homey-pms-dropdown-wrap">
 														<select class="homey-pms-room-select">
-															<option value=""><?php echo $beds24_connected ? esc_html__( '-- Select Room --', 'homey-channel-sync' ) : esc_html__( 'Connect API first', 'homey-channel-sync' ); ?></option>
+															<option value=""><?php echo $beds24_connected ? esc_html__( '-- Select Room --', 'channel-sync-for-homey' ) : esc_html__( 'Connect API first', 'channel-sync-for-homey' ); ?></option>
 														</select>
 													</div>
 													<!-- Fallback Manual Input -->
@@ -1473,10 +1473,10 @@ class Homey_Channel_Sync_Admin {
 												</td>
 												<td>
 													<?php if ( ! empty( $last_sync ) ) : ?>
-														<span style="color:#46b450; font-weight:600;">✔️ <?php echo esc_html__( 'Synced', 'homey-channel-sync' ); ?></span><br/>
+														<span style="color:#46b450; font-weight:600;">✔️ <?php echo esc_html__( 'Synced', 'channel-sync-for-homey' ); ?></span><br/>
 														<span class="description" style="font-size:10px;"><?php echo esc_html( (string) $last_sync ); ?></span>
 													<?php else : ?>
-														<span style="color:#72777c;">— <?php echo esc_html__( 'Pending Sync', 'homey-channel-sync' ); ?></span>
+														<span style="color:#72777c;">— <?php echo esc_html__( 'Pending Sync', 'channel-sync-for-homey' ); ?></span>
 													<?php endif; ?>
 												</td>
 											</tr>
@@ -1493,60 +1493,60 @@ class Homey_Channel_Sync_Admin {
 				<!-- TAB 3: Advanced Settings and Schedules -->
 				<?php if ( $active_tab === 'settings' ) : ?>
 					<div class="homey-sync-card">
-						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Modular Sync Toggles', 'homey-channel-sync' ); ?></h3>
-						<p class="description"><?php echo esc_html__( 'Deconstruct synchronization processes. Turn modular aspects of the plugin on or off.', 'homey-channel-sync' ); ?></p>
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'Modular Sync Toggles', 'channel-sync-for-homey' ); ?></h3>
+						<p class="description"><?php echo esc_html__( 'Deconstruct synchronization processes. Turn modular aspects of the plugin on or off.', 'channel-sync-for-homey' ); ?></p>
 
 						<table class="form-table" style="margin-top:15px;">
 							<tr>
-								<th scope="row"><?php echo esc_html__( 'Dynamic Price Overrides', 'homey-channel-sync' ); ?></th>
+								<th scope="row"><?php echo esc_html__( 'Dynamic Price Overrides', 'channel-sync-for-homey' ); ?></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="feature_price_sync" value="1" <?php checked( $this->options['feature_price_sync'] ?? '0', '1' ); ?> />
-											<strong><?php echo esc_html__( 'Enable Dynamic Daily Pricing Sync (Active)', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable Dynamic Daily Pricing Sync (Active)', 'channel-sync-for-homey' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Pull Beds24 daily prices and apply prices to Homey nightly or daily rates.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Pull Beds24 daily prices and apply prices to Homey nightly or daily rates.', 'channel-sync-for-homey' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
 							<tr class="coming-soon-card">
-								<th scope="row"><?php echo esc_html__( 'Reservation Sync', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
+								<th scope="row"><?php echo esc_html__( 'Reservation Sync', 'channel-sync-for-homey' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="feature_booking_ingestion" value="1" disabled />
-											<strong><?php echo esc_html__( 'Enable Real-time Bidirectional Reservation Sync (Planned)', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable Real-time Bidirectional Reservation Sync (Planned)', 'channel-sync-for-homey' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Enables a powerful bidirectional synchronization between the Homey theme and Beds24. Unlike standard static iCal syncing, this engine pushes rich reservation metadata, guest profiles, and financial amounts to Beds24, while dynamically importing external reservations to update and sync active bookings in the guest dashboard.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Enables a powerful bidirectional synchronization between the Homey theme and Beds24. Unlike standard static iCal syncing, this engine pushes rich reservation metadata, guest profiles, and financial amounts to Beds24, while dynamically importing external reservations to update and sync active bookings in the guest dashboard.', 'channel-sync-for-homey' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
 							<tr class="coming-soon-card">
-								<th scope="row"><?php echo esc_html__( 'Promo & Coupon Engine', 'homey-channel-sync' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'homey-channel-sync' ); ?></span></th>
+								<th scope="row"><?php echo esc_html__( 'Promo & Coupon Engine', 'channel-sync-for-homey' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="feature_promo_engine" value="1" disabled />
-											<strong><?php echo esc_html__( 'Enable Local Promo & Coupon Manager (Planned)', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable Local Promo & Coupon Manager (Planned)', 'channel-sync-for-homey' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Enables a dedicated coupon manager, giving administrators the ability to manually generate custom coupon codes and campaign discounts that guests can apply natively at checkout. Note: Since Beds24 does not provide a direct API for promo codes, this engine manages all promo deduction calculations locally on the Homey checkout form.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Enables a dedicated coupon manager, giving administrators the ability to manually generate custom coupon codes and campaign discounts that guests can apply natively at checkout. Note: Since Beds24 does not provide a direct API for promo codes, this engine manages all promo deduction calculations locally on the Homey checkout form.', 'channel-sync-for-homey' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
 						</table>
 
-						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'WP-Cron background schedule', 'homey-channel-sync' ); ?></h3>
-						<p class="description"><?php echo esc_html__( 'Configure the background frequency at which dynamic rates are updated from the Beds24 server.', 'homey-channel-sync' ); ?></p>
+						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'WP-Cron background schedule', 'channel-sync-for-homey' ); ?></h3>
+						<p class="description"><?php echo esc_html__( 'Configure the background frequency at which dynamic rates are updated from the Beds24 server.', 'channel-sync-for-homey' ); ?></p>
 
 						<table class="form-table">
 							<tr>
-								<th scope="row"><label for="cron_schedule"><?php echo esc_html__( 'Automated Sync Interval', 'homey-channel-sync' ); ?></label></th>
+								<th scope="row"><label for="cron_schedule"><?php echo esc_html__( 'Automated Sync Interval', 'channel-sync-for-homey' ); ?></label></th>
 								<td>
 									<select name="cron_schedule" id="cron_schedule">
-										<option value="twicedaily" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'twicedaily' ); ?>><?php echo esc_html__( 'Every 12 Hours (Twice Daily)', 'homey-channel-sync' ); ?></option>
-										<option value="daily" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'daily' ); ?>><?php echo esc_html__( 'Every 24 Hours (Once Daily)', 'homey-channel-sync' ); ?></option>
-										<option value="weekly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'weekly' ); ?>><?php echo esc_html__( 'Every 7 Days (Once Weekly)', 'homey-channel-sync' ); ?></option>
-										<option value="monthly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'monthly' ); ?>><?php echo esc_html__( 'Every 30 Days (Once Monthly)', 'homey-channel-sync' ); ?></option>
+										<option value="twicedaily" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'twicedaily' ); ?>><?php echo esc_html__( 'Every 12 Hours (Twice Daily)', 'channel-sync-for-homey' ); ?></option>
+										<option value="daily" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'daily' ); ?>><?php echo esc_html__( 'Every 24 Hours (Once Daily)', 'channel-sync-for-homey' ); ?></option>
+										<option value="weekly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'weekly' ); ?>><?php echo esc_html__( 'Every 7 Days (Once Weekly)', 'channel-sync-for-homey' ); ?></option>
+										<option value="monthly" <?php selected( $this->options['cron_schedule'] ?? 'twicedaily', 'monthly' ); ?>><?php echo esc_html__( 'Every 30 Days (Once Monthly)', 'channel-sync-for-homey' ); ?></option>
 									</select>
 
 									<?php
@@ -1554,20 +1554,20 @@ class Homey_Channel_Sync_Admin {
 									if ( $next_run ) :
 										?>
 										<p class="description" style="margin-top:10px; color:#0a4b78; font-weight:600;">
-											⏰ <?php echo esc_html__( 'Next Automated Run:', 'homey-channel-sync' ); ?> 
+											⏰ <?php echo esc_html__( 'Next Automated Run:', 'channel-sync-for-homey' ); ?> 
 											<code><?php echo esc_html( wp_date( 'l F j \a\t g:ia', $next_run ) ); ?></code>
 										</p>
 									<?php else : ?>
 										<p class="description" style="margin-top:10px; color:#d63638; font-weight:600;">
-											⚠️ <?php echo esc_html__( 'Background sync task is currently unscheduled. Connect your API and save settings to schedule.', 'homey-channel-sync' ); ?>
+											⚠️ <?php echo esc_html__( 'Background sync task is currently unscheduled. Connect your API and save settings to schedule.', 'channel-sync-for-homey' ); ?>
 										</p>
 									<?php endif; ?>
 								</td>
 							</tr>
 						</table>
 
-						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'Manual Sync Trigger', 'homey-channel-sync' ); ?></h3>
-						<p class="description"><?php echo esc_html__( 'Execute the full Beds24 daily pricing synchronization instantly bypassing the next automated background task run.', 'homey-channel-sync' ); ?></p>
+						<h3 class="homey-sync-card-title" style="margin-top:30px;"><?php echo esc_html__( 'Manual Sync Trigger', 'channel-sync-for-homey' ); ?></h3>
+						<p class="description"><?php echo esc_html__( 'Execute the full Beds24 daily pricing synchronization instantly bypassing the next automated background task run.', 'channel-sync-for-homey' ); ?></p>
 
 						<?php
 						$features_active   = ( '1' === ( $this->options['feature_price_sync'] ?? '0' ) );
@@ -1575,15 +1575,15 @@ class Homey_Channel_Sync_Admin {
 						?>
 						<div style="margin-top:20px;">
 							<button type="button" id="homey-sync-trigger" class="button button-large homey-sync-btn-primary" <?php echo $sync_btn_disabled; ?>>
-								🔄 <?php echo esc_html__( 'Sync Now (Force Update)', 'homey-channel-sync' ); ?>
+								🔄 <?php echo esc_html__( 'Sync Now (Force Update)', 'channel-sync-for-homey' ); ?>
 							</button>
 							
 							<p id="homey-sync-conn-warning" class="description" style="color:#d63638; margin-top: 5px; <?php echo ! $beds24_connected ? '' : 'display:none;'; ?>">
-								<?php echo esc_html__( 'Please establish API connection first to enable synchronization.', 'homey-channel-sync' ); ?>
+								<?php echo esc_html__( 'Please establish API connection first to enable synchronization.', 'channel-sync-for-homey' ); ?>
 							</p>
 
 							<p id="homey-sync-feature-warning" class="description" style="color:#d63638; margin-top: 5px; <?php echo ( $beds24_connected && ! $features_active ) ? '' : 'display:none;'; ?>">
-								<?php echo esc_html__( 'Please enable at least one active synchronization feature (e.g. Dynamic Price Overrides) above to enable manual triggering.', 'homey-channel-sync' ); ?>
+								<?php echo esc_html__( 'Please enable at least one active synchronization feature (e.g. Dynamic Price Overrides) above to enable manual triggering.', 'channel-sync-for-homey' ); ?>
 							</p>
 						</div>
 
@@ -1606,21 +1606,21 @@ class Homey_Channel_Sync_Admin {
 					);
 					?>
 					<div class="homey-sync-card">
-						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'API & Sync Debug Logging', 'homey-channel-sync' ); ?></h3>
+						<h3 class="homey-sync-card-title"><?php echo esc_html__( 'API & Sync Debug Logging', 'channel-sync-for-homey' ); ?></h3>
 						<p class="description">
-							<?php echo esc_html__( 'Track API requests, payload responses, transient states, and cron telemetry for Beds24 PMS integration.', 'homey-channel-sync' ); ?>
+							<?php echo esc_html__( 'Track API requests, payload responses, transient states, and cron telemetry for Beds24 PMS integration.', 'channel-sync-for-homey' ); ?>
 						</p>
 
 						<table class="form-table" style="margin-top:15px; margin-bottom: 25px;">
 							<tr>
-								<th scope="row"><?php echo esc_html__( 'Logging Toggle', 'homey-channel-sync' ); ?></th>
+								<th scope="row"><?php echo esc_html__( 'Logging Toggle', 'channel-sync-for-homey' ); ?></th>
 								<td>
 									<fieldset>
 										<label>
 											<input type="checkbox" name="enable_debug_log" value="1" <?php checked( $this->options['enable_debug_log'] ?? '0', '1' ); ?> />
-											<strong><?php echo esc_html__( 'Enable API & Sync Debug Logging', 'homey-channel-sync' ); ?></strong>
+											<strong><?php echo esc_html__( 'Enable API & Sync Debug Logging', 'channel-sync-for-homey' ); ?></strong>
 										</label>
-										<p class="description"><?php echo esc_html__( 'Only writes non-error synchronization events and detailed API telemetries to disk when checked.', 'homey-channel-sync' ); ?></p>
+										<p class="description"><?php echo esc_html__( 'Only writes non-error synchronization events and detailed API telemetries to disk when checked.', 'channel-sync-for-homey' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
@@ -1628,14 +1628,14 @@ class Homey_Channel_Sync_Admin {
 
 						<div class="homey-sync-actions-row" style="margin-bottom: 10px;">
 							<div class="homey-sync-actions-left">
-								<h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #2c3338;"><?php echo esc_html__( 'Active Monthly Log File Content:', 'homey-channel-sync' ); ?></h4>
+								<h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #2c3338;"><?php echo esc_html__( 'Active Monthly Log File Content:', 'channel-sync-for-homey' ); ?></h4>
 							</div>
 							<div class="homey-sync-actions-right">
 								<a href="<?php echo esc_url( $download_url ); ?>" class="button button-secondary">
-									📥 <?php echo esc_html__( 'Download Log File', 'homey-channel-sync' ); ?>
+									📥 <?php echo esc_html__( 'Download Log File', 'channel-sync-for-homey' ); ?>
 								</a>
 								<button type="button" id="homey-sync-clear-logs-btn" class="button button-secondary" style="color: #d63638; border-color: #d63638;">
-									🗑️ <?php echo esc_html__( 'Clear Log File', 'homey-channel-sync' ); ?>
+									🗑️ <?php echo esc_html__( 'Clear Log File', 'channel-sync-for-homey' ); ?>
 								</button>
 								<span class="spinner test-connection-loader" style="margin:0;"></span>
 							</div>
@@ -1649,7 +1649,7 @@ class Homey_Channel_Sync_Admin {
 
 				<!-- Form Actions Footer -->
 				<div style="margin-top:20px;">
-					<input type="submit" name="submit_save" class="button button-primary button-large" value="<?php echo esc_attr__( 'Save Settings', 'homey-channel-sync' ); ?>" />
+					<input type="submit" name="submit_save" class="button button-primary button-large" value="<?php echo esc_attr__( 'Save Settings', 'channel-sync-for-homey' ); ?>" />
 				</div>
 			</form>
 		</div>

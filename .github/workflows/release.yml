@@ -28,7 +28,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
-          name: Homey Channel Sync ${{ env.VERSION }}
+          name: Channel Sync for Homey ${{ env.VERSION }}
           generate_release_notes: true
           draft: false
           prerelease: false
