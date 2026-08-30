@@ -1,7 +1,7 @@
 # Channel Sync for Homey
 
-[![Playwright E2E & Unit Tests (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml)
-[![Playwright E2E & Unit Tests (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml)
+[![Playwright E2E & Unit Tests (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Playwright E2E & Unit Tests (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Adevelopment)
 
 Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
 
