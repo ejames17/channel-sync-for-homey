@@ -306,7 +306,7 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 		}
 
 		$response = wp_safe_remote_get(
-			'https://api.beds24.com/v2/properties?includeRooms=true',
+			'https://api.beds24.com/v2/properties?includeAllRooms=true',
 			array(
 				'headers' => array(
 					'token'  => trim( $access_token ),

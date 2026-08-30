@@ -430,7 +430,7 @@ class Homey_Channel_Sync_Admin {
 						// Populate Property Select Options
 						propSelect.empty().append('<option value=\"\">-- Select Property --</option>');
 						$.each(activeInventory, function(i, prop) {
-							var selected = (prop.property_id === savedPropId) ? 'selected' : '';
+							var selected = (String(prop.property_id) === String(savedPropId)) ? 'selected' : '';
 							propSelect.append('<option value=\"' + prop.property_id + '\" ' + selected + '>' + prop.property_name + ' (ID: ' + prop.property_id + ')</option>');
 						});
 
@@ -440,10 +440,10 @@ class Homey_Channel_Sync_Admin {
 							if (!propId) {
 								return;
 							}
-							var matchedProp = activeInventory.find(function(p) { return p.property_id === propId; });
+							var matchedProp = activeInventory.find(function(p) { return String(p.property_id) === String(propId); });
 							if (matchedProp && matchedProp.rooms) {
 								$.each(matchedProp.rooms, function(j, r) {
-									var selected = (r.room_id === currentRoomId) ? 'selected' : '';
+									var selected = (String(r.room_id) === String(currentRoomId)) ? 'selected' : '';
 									roomSelect.append('<option value=\"' + r.room_id + '\" ' + selected + '>' + r.room_name + ' (ID: ' + r.room_id + ')</option>');
 								});
 							}
