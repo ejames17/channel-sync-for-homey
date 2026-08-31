@@ -2,6 +2,8 @@
 
 [![Playwright E2E & Unit Tests (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Amaster)
 [![Playwright E2E & Unit Tests (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Adevelopment)
+[![GitHub release (latest by SemVer)](https://img.shields.io/github/v/release/ejames17/channel-sync-for-homey?sort=semver)](https://github.com/ejames17/channel-sync-for-homey/releases)
+[![WordPress Plugin Version](https://img.shields.io/badge/version-1.0.8-blue)](https://github.com/ejames17/channel-sync-for-homey)
 
 Seamless channel management, dynamic pricing, and reservation sync engine connecting Beds24 and PMS channels to the Homey WordPress Theme.
 
@@ -60,29 +62,4 @@ Help shape our development by voting on what we build next:
 1. Clone this repository into your WordPress local site's plugins directory:
    ```bash
    cd wp-content/plugins/
-   git clone https://github.com/ejames17/channel-sync-for-homey.git
-   ```
-2. Activate the plugin via WordPress Admin dashboard.
-3. Configure credentials under **Homey > Channel Sync** in your sidebar.
-
-### Running End-to-End Tests
-To guarantee the structural integrity of your changes, we use a robust Playwright-based testing suite that runs on real WordPress environments:
-1. Install development dependencies:
-   ```bash
-   npm install
-   ```
-2. Run mock API and automated E2E tests:
-   ```bash
-   npx playwright test
-   ```
-
----
-
-## 🤝 Contributing & Support
-
-We welcome contributions of any size! For bugs or feature requests, please open a GitHub Issue or utilize `/bug` commands inside the CLI.
-
----
-
-## 📄 License
-This project is licensed under **GPLv2 or later** (compatible with the WordPress Core License model).
+   git clone [https://github.com/ejames17/channel-sync-for-homey.git](https://github.com/ejames17/channel-sync-for-homey.git)

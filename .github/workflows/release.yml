@@ -7,30 +7,32 @@ on:
       - main
 
 jobs:
-  draft-release:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Extract Plugin Version
-        id: get_version
-        run: |
-          # Extract version, remove carriage returns and spaces
-          RAW_VER=$(grep -i "Version:" homey-channel-sync.php | head -n 1 | awk -F': ' '{print $2}' | tr -d '\r' | xargs)
-          echo "VERSION=v${RAW_VER}" >> $GITHUB_ENV
-          echo "Extracted Tag: v${RAW_VER}"
-
-      - name: Create Git Tag and GitHub Release
-        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: Channel Sync for Homey ${{ env.VERSION }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install Semantic Release Plugins
+        run: |
+          npm install -D \
+            semantic-release \
+            @semantic-release/changelog \
+            @semantic-release/git \
+            @semantic-release/exec
+
+      - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
