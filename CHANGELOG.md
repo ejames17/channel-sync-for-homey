@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.1...v1.1.2) (2026-08-31)
+
+
+### Bug Fixes
+
+* bump internal VERSION constant in main class during releases ([20d4b6f](https://github.com/ejames17/channel-sync-for-homey/commit/20d4b6f1ffb662bbcb1625997de70a958fb08d6e))
+
 ## [1.1.1](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.0...v1.1.1) (2026-08-31)
 
 
