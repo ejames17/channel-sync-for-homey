@@ -7,14 +7,14 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's/Version: .*/Version: ${nextRelease.version}/g' homey-channel-sync.php && sed -i 's/Stable tag: .*/Stable tag: ${nextRelease.version}/g' readme.txt && npm version ${nextRelease.version} --no-git-tag-version && sed -i 's/\"version\": \".*\"/\"version\": \"${nextRelease.version}\"/g' composer.json && sed -i 's/version-[0-9]*\\.[0-9]*\\.[0-9]*/version-${nextRelease.version}/g' README.md"
+        "prepareCmd": "sed -i 's/Version: .*/Version: ${nextRelease.version}/g' channel-sync-for-homey.php && sed -i 's/Stable tag: .*/Stable tag: ${nextRelease.version}/g' readme.txt && npm version ${nextRelease.version} --no-git-tag-version && sed -i 's/\"version\": \".*\"/\"version\": \"${nextRelease.version}\"/g' composer.json && sed -i 's/version-[0-9]*\\.[0-9]*\\.[0-9]*/version-${nextRelease.version}/g' README.md"
       }
     ],
     [
       "@semantic-release/git",
       {
         "assets": [
-          "homey-channel-sync.php",
+          "channel-sync-for-homey.php",
           "readme.txt",
           "package.json",
           "package-lock.json",
