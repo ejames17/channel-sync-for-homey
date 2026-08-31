@@ -222,11 +222,17 @@ final class Homey_Channel_Sync {
 		// If on booking/checkout pages, we might need custom periods of the listing currently being booked.
 		// We pull custom periods for all mapped listings, nested securely by Listing ID, to prevent timestamp key collisions
 		$pooled_periods = array();
+		$booking_types  = array();
 
 		if ( is_singular( 'listing' ) ) {
+			$booking_type = get_post_meta( $post_id, 'homey_booking_type', true );
+			if ( ! empty( $booking_type ) && 'per_day' !== $booking_type && 'per_day_date' !== $booking_type ) {
+				return; // Disable plugin overlays entirely on non-daily/nightly listing pages
+			}
 			if ( is_array( $custom_periods ) ) {
 				$pooled_periods[ $post_id ] = $custom_periods;
 			}
+			$booking_types[ $post_id ] = $booking_type;
 		} else {
 			// Pull custom periods for all mapped listings to support checkout sidebars
 			$mapped_listings = get_posts(
@@ -243,9 +249,14 @@ final class Homey_Channel_Sync {
 			);
 
 			foreach ( $mapped_listings as $lst ) {
-				$list_periods = get_post_meta( $lst->ID, 'homey_custom_period', true );
-				if ( is_array( $list_periods ) ) {
-					$pooled_periods[ $lst->ID ] = $list_periods;
+				$lst_booking_type = get_post_meta( $lst->ID, 'homey_booking_type', true );
+				$booking_types[ $lst->ID ] = $lst_booking_type;
+
+				if ( empty( $lst_booking_type ) || 'per_day' === $lst_booking_type || 'per_day_date' === $lst_booking_type ) {
+					$list_periods = get_post_meta( $lst->ID, 'homey_custom_period', true );
+					if ( is_array( $list_periods ) ) {
+						$pooled_periods[ $lst->ID ] = $list_periods;
+					}
 				}
 			}
 		}
@@ -339,20 +350,39 @@ final class Homey_Channel_Sync {
 		<!-- Homey Channel Sync — Front End Overlay Pricing Script block -->
 		<script>
 			window.homeyCustomPeriodPrice = <?php echo wp_json_encode( $pooled_periods ); ?>;
+			window.homeyListingBookingTypes = <?php echo wp_json_encode( $booking_types ); ?>;
 			window.homeyPriceSyncEnabled = <?php echo $feature_price_sync ? 'true' : 'false'; ?>;
 
 			jQuery(document).ready(function($) {
 				var rawPeriods = window.homeyCustomPeriodPrice || {};
+				var bookingTypes = window.homeyListingBookingTypes || {};
 				var listingId = $('.homey-pms-row').first().data('listing-id') || $('#listing_id').val() || new URLSearchParams(window.location.search).get('listing_id') || new URLSearchParams(window.location.search).get('p') || '';
+
+				// Extract bookingType and check if it's nightly or daily
+				var activeBookingType = '';
+				if (listingId && bookingTypes[listingId]) {
+					activeBookingType = bookingTypes[listingId];
+				} else {
+					var firstKey = Object.keys(bookingTypes)[0];
+					if (firstKey) {
+						activeBookingType = bookingTypes[firstKey];
+					}
+				}
+
+				// If booking type is defined and is not daily or nightly (e.g. per_week, per_month, per_hour), completely abort any JS-based modifications
+				if (activeBookingType && activeBookingType !== 'per_day' && activeBookingType !== 'per_day_date') {
+					console.log('>> [Homey Channel Sync] Aborting frontend overlays: active booking type is', activeBookingType);
+					return;
+				}
 
 				// Extract customPeriod specifically for the active listingId, or fallback to first available
 				var customPeriod = {};
 				if (listingId && rawPeriods[listingId]) {
 					customPeriod = rawPeriods[listingId];
 				} else {
-					var firstKey = Object.keys(rawPeriods)[0];
-					if (firstKey && typeof rawPeriods[firstKey] === 'object' && !Array.isArray(rawPeriods[firstKey])) {
-						customPeriod = rawPeriods[firstKey];
+					var firstKeyPeriod = Object.keys(rawPeriods)[0];
+					if (firstKeyPeriod && typeof rawPeriods[firstKeyPeriod] === 'object' && !Array.isArray(rawPeriods[firstKeyPeriod])) {
+						customPeriod = rawPeriods[firstKeyPeriod];
 					} else {
 						customPeriod = rawPeriods;
 					}

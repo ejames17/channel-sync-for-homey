@@ -88,12 +88,12 @@ class Homey_Channel_Sync_Cron {
 			);
 		}
 
-		// Retrieve list of all published listing records.
+		// Retrieve list of all listing records to map.
 		$listings = get_posts(
 			array(
 				'post_type'      => 'listing',
-				'posts_per_page' => 100,
-				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future' ),
 			)
 		);
 
@@ -101,7 +101,7 @@ class Homey_Channel_Sync_Cron {
 			return array(
 				'success' => true,
 				'updated' => 0,
-				'message' => esc_html__( 'No published Homey listings found to map.', 'channel-sync-for-homey' ),
+				'message' => esc_html__( 'No Homey listings found to map.', 'channel-sync-for-homey' ),
 			);
 		}
 
@@ -180,7 +180,7 @@ class Homey_Channel_Sync_Cron {
 
 			// Verify if the listing is configured for nightly/daily bookings (skip hourly, weekly, monthly, etc.).
 			$booking_type = get_post_meta( $listing_id, 'homey_booking_type', true );
-			if ( 'per_day' !== $booking_type && 'per_day_date' !== $booking_type ) {
+			if ( ! empty( $booking_type ) && 'per_day' !== $booking_type && 'per_day_date' !== $booking_type ) {
 				continue;
 			}
 

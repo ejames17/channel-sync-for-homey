@@ -98,6 +98,43 @@ test.before(() => {
 			return;
 		}
 
+		// 4. Mock GET /properties (Beds24 Properties and Rooms)
+		if (method === 'GET' && pathname === '/properties') {
+			const accessToken = req.headers['token'] || '';
+			if (!accessToken) {
+				res.writeHead(401);
+				res.end(JSON.stringify({ error: 'Unauthorized: Missing access token' }));
+				return;
+			}
+
+			const includeAllRooms = parsedUrl.searchParams.get('includeAllRooms') || '';
+			if (includeAllRooms === 'true') {
+				res.writeHead(200);
+				res.end(JSON.stringify([
+					{
+						id: 74130,
+						name: 'Gorgeous Studio in Midtown Manhattan',
+						roomTypes: [
+							{
+								id: 170328,
+								name: 'Apartment 4'
+							}
+						]
+					}
+				]));
+			} else {
+				res.writeHead(200);
+				// To simulate the bug where rooms are not returned when using the incorrect/missing includeAllRooms parameter
+				res.end(JSON.stringify([
+					{
+						id: 74130,
+						name: 'Gorgeous Studio in Midtown Manhattan'
+					}
+				]));
+			}
+			return;
+		}
+
 		// Fallback for missing endpoints
 		res.writeHead(404);
 		res.end(JSON.stringify({ error: 'Endpoint not found' }));
@@ -172,4 +209,30 @@ test('GET /inventory/rooms/calendar - Missing token returns HTTP 401 Unauthorize
 	assert.equal(res.status, 401);
 	const data = await res.json();
 	assert.ok(data.error.includes('Unauthorized'));
+});
+
+test('GET /properties - with includeAllRooms=true returns properties and rooms', async () => {
+	const res = await fetch(`http://localhost:${MOCK_PORT}/properties?includeAllRooms=true`, {
+		headers: { 'token': 'mock_access_token_abc123' }
+	});
+
+	assert.equal(res.status, 200);
+	const data = await res.json();
+	assert.ok(Array.isArray(data));
+	assert.equal(data[0].id, 74130);
+	assert.ok(Array.isArray(data[0].roomTypes));
+	assert.equal(data[0].roomTypes[0].id, 170328);
+	assert.equal(data[0].roomTypes[0].name, 'Apartment 4');
+});
+
+test('GET /properties - with incorrect or missing includeAllRooms parameter does not return rooms list', async () => {
+	const res = await fetch(`http://localhost:${MOCK_PORT}/properties?includeRooms=true`, {
+		headers: { 'token': 'mock_access_token_abc123' }
+	});
+
+	assert.equal(res.status, 200);
+	const data = await res.json();
+	assert.ok(Array.isArray(data));
+	assert.equal(data[0].id, 74130);
+	assert.equal(data[0].roomTypes, undefined);
 });

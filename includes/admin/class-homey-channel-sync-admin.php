@@ -430,7 +430,7 @@ class Homey_Channel_Sync_Admin {
 						// Populate Property Select Options
 						propSelect.empty().append('<option value=\"\">-- Select Property --</option>');
 						$.each(activeInventory, function(i, prop) {
-							var selected = (prop.property_id === savedPropId) ? 'selected' : '';
+							var selected = (String(prop.property_id) === String(savedPropId)) ? 'selected' : '';
 							propSelect.append('<option value=\"' + prop.property_id + '\" ' + selected + '>' + prop.property_name + ' (ID: ' + prop.property_id + ')</option>');
 						});
 
@@ -440,10 +440,10 @@ class Homey_Channel_Sync_Admin {
 							if (!propId) {
 								return;
 							}
-							var matchedProp = activeInventory.find(function(p) { return p.property_id === propId; });
+							var matchedProp = activeInventory.find(function(p) { return String(p.property_id) === String(propId); });
 							if (matchedProp && matchedProp.rooms) {
 								$.each(matchedProp.rooms, function(j, r) {
-									var selected = (r.room_id === currentRoomId) ? 'selected' : '';
+									var selected = (String(r.room_id) === String(currentRoomId)) ? 'selected' : '';
 									roomSelect.append('<option value=\"' + r.room_id + '\" ' + selected + '>' + r.room_name + ' (ID: ' + r.room_id + ')</option>');
 								});
 							}
@@ -1103,7 +1103,7 @@ class Homey_Channel_Sync_Admin {
 		?>
 		<div class="wrap homey-sync-wrap">
 			<div class="homey-sync-header">
-				<h1>Homey Channel Sync <span class="homey-sync-logo-text">| PMS Adapter Dashboard</span></h1>
+				<h1>Channel Sync for Homey <span class="homey-sync-logo-text">| PMS Adapter Dashboard</span></h1>
 				<span class="homey-sync-badge"><?php echo esc_html__( 'Phase 1 Active', 'channel-sync-for-homey' ); ?></span>
 			</div>
 
@@ -1112,7 +1112,7 @@ class Homey_Channel_Sync_Admin {
 			<!-- Community Voting Banner -->
 			<div class="homey-sync-voting-banner" style="background:#fff; border-left:4px solid #f15a24; padding:15px 20px; margin: 15px 0 20px 0; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:space-between; border-radius:3px;">
 				<div style="flex-grow:1; padding-right:20px;">
-					<h3 style="margin:0 0 5px 0; color:#1e1e1c; font-size:15px; font-weight:600;"><?php echo esc_html__( 'Help Shape Homey Channel Sync Premium!', 'channel-sync-for-homey' ); ?></h3>
+					<h3 style="margin:0 0 5px 0; color:#1e1e1c; font-size:15px; font-weight:600;"><?php echo esc_html__( 'Help Shape Channel Sync for Homey Premium!', 'channel-sync-for-homey' ); ?></h3>
 					<p style="margin:0; font-size:13px; color:#50575e; line-height:1.4;">
 						<?php echo esc_html__( 'We are actively planning support for other major Property Management Systems (PMS) and additional vacation booking WordPress themes as premium paid solutions. Your vote decides our roadmap!', 'channel-sync-for-homey' ); ?>
 					</p>
