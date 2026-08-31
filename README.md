@@ -62,4 +62,29 @@ Help shape our development by voting on what we build next:
 1. Clone this repository into your WordPress local site's plugins directory:
    ```bash
    cd wp-content/plugins/
-   git clone [https://github.com/ejames17/channel-sync-for-homey.git](https://github.com/ejames17/channel-sync-for-homey.git)
+   git clone https://github.com/ejames17/channel-sync-for-homey.git
+   ```
+2. Activate the plugin via WordPress Admin dashboard.
+3. Configure credentials under **Homey > Channel Sync** in your sidebar.
+
+### Running End-to-End Tests
+To guarantee the structural integrity of your changes, we use a robust Playwright-based testing suite that runs on real WordPress environments:
+1. Install development dependencies:
+   ```bash
+   npm install
+   ```
+2. Run mock API and automated E2E tests:
+   ```bash
+   npx playwright test
+   ```
+
+---
+
+## 🤝 Contributing & Support
+
+We welcome contributions of any size! For bugs or feature requests, please open a GitHub Issue or utilize `/bug` commands inside the CLI.
+
+---
+
+## 📄 License
+This project is licensed under **GPLv2 or later** (compatible with the WordPress Core License model).
