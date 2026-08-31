@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.0...v1.1.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* streamline release assets script and update readme badge references ([74d8bec](https://github.com/ejames17/channel-sync-for-homey/commit/74d8bec0504e6b5c171f605d3e0c08ea44fd6760))
+
 # [1.1.0](https://github.com/ejames17/channel-sync-for-homey/compare/v1.0.0...v1.1.0) (2026-08-31)
 
 

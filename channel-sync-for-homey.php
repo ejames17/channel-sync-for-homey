@@ -3,7 +3,7 @@
  * Plugin Name:       Channel Sync for Homey
  * Plugin URI:        https://github.com/ejames17/channel-sync-for-homey
  * Description:       Synchronize Beds24 channels and availability for the Homey theme.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author:            ejames17
  * License:           GPLv2 or later
  * Text Domain:       channel-sync-for-homey
