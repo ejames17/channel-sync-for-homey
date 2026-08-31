@@ -1,3 +1,14 @@
+# [1.1.0](https://github.com/ejames17/channel-sync-for-homey/compare/v1.0.0...v1.1.0) (2026-08-31)
+
+
+### Bug Fixes
+
+* resolve releaserc build script path and asset targets ([074e93a](https://github.com/ejames17/channel-sync-for-homey/commit/074e93a6eebe22afd1642b933cc1b37ce39c3623))
+
+
+### Features
+
+* setup automated semantic-release configuration and version tracking ([b9be0a2](https://github.com/ejames17/channel-sync-for-homey/commit/b9be0a219c58d8fe800c071c13b7dbdfb9086ade))
 
 ### 2. `CHANGELOG.md` 
 
