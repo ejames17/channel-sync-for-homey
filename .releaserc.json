@@ -28,3 +28,17 @@
     "@semantic-release/github"
   ]
 }
+
+
+---
+
+### 2. Clean `README.md` Badge Setup
+
+Replace the badge markup in your `README.md` with these two dynamic endpoints so they always reflect the latest release without caching mismatched versions:
+
+```markdown
+<!-- Single unified version badge pointing directly to GitHub Release -->
+[![GitHub Release](https://img.shields.io/github/v/release/ejames17/channel-sync-for-homey?label=release&color=blue)](https://github.com/ejames17/channel-sync-for-homey/releases/latest)
+
+<!-- WordPress Core / Tested Compatibility Badge -->
+[![WordPress Tested](https://img.shields.io/badge/wordpress-6.0%2B-brightgreen)](https://wordpress.org)
