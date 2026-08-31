@@ -1,7 +1,7 @@
 # Channel Sync for Homey
 
-[![Playwright E2E & Unit Tests (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Amaster)
-[![Playwright E2E & Unit Tests (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Adevelopment)
+[![E2E & Unit Tests | master (Master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Amaster)
+[![E2E & Unit Tests | development (Development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/ejames17/channel-sync-for-homey/actions/workflows/ci.yml?query=branch%3Adevelopment)
 [![GitHub release (latest by SemVer)](https://img.shields.io/github/v/release/ejames17/channel-sync-for-homey?sort=semver)](https://github.com/ejames17/channel-sync-for-homey/releases)
 [![WordPress Plugin Version](https://img.shields.io/badge/version-1.0.8-blue)](https://github.com/ejames17/channel-sync-for-homey)
 
