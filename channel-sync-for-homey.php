@@ -174,7 +174,6 @@ final class Homey_Channel_Sync {
 				'beds24_refresh_token'           => '',
 				'feature_price_sync'             => '0',
 				'feature_booking_ingestion'      => '0',
-				'feature_promo_engine'           => '0',
 				'cron_schedule'                  => 'twicedaily',
 				'enable_debug_log'               => '0',
 			);
