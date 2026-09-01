@@ -64,7 +64,6 @@ class Homey_Channel_Sync_Admin {
 			'beds24_refresh_token'           => '',
 			'feature_price_sync'             => '0',
 			'feature_booking_ingestion'      => '0',
-			'feature_promo_engine'           => '0',
 			'cron_schedule'                  => 'twicedaily',
 			'enable_debug_log'               => '0',
 		);
@@ -761,7 +760,6 @@ class Homey_Channel_Sync_Admin {
 		if ( $current_tab === 'settings' ) {
 			$this->options['feature_price_sync']        = isset( $_POST['feature_price_sync'] ) ? '1' : '0';
 			$this->options['feature_booking_ingestion'] = isset( $_POST['feature_booking_ingestion'] ) ? '1' : '0';
-			$this->options['feature_promo_engine']      = isset( $_POST['feature_promo_engine'] ) ? '1' : '0';
 
 			$old_schedule                   = $this->options['cron_schedule'] ?? 'twicedaily';
 			$new_schedule                   = sanitize_text_field( wp_unslash( $_POST['cron_schedule'] ?? 'twicedaily' ) );
@@ -1518,18 +1516,6 @@ class Homey_Channel_Sync_Admin {
 											<strong><?php echo esc_html__( 'Enable Real-time Bidirectional Reservation Sync (Planned)', 'channel-sync-for-homey' ); ?></strong>
 										</label>
 										<p class="description"><?php echo esc_html__( 'Enables a powerful bidirectional synchronization between the Homey theme and Beds24. Unlike standard static iCal syncing, this engine pushes rich reservation metadata, guest profiles, and financial amounts to Beds24, while dynamically importing external reservations to update and sync active bookings in the guest dashboard.', 'channel-sync-for-homey' ); ?></p>
-									</fieldset>
-								</td>
-							</tr>
-							<tr class="coming-soon-card">
-								<th scope="row"><?php echo esc_html__( 'Promo & Coupon Engine', 'channel-sync-for-homey' ); ?> <span class="coming-soon-badge"><?php echo esc_html__( 'Soon', 'channel-sync-for-homey' ); ?></span></th>
-								<td>
-									<fieldset>
-										<label>
-											<input type="checkbox" name="feature_promo_engine" value="1" disabled />
-											<strong><?php echo esc_html__( 'Enable Local Promo & Coupon Manager (Planned)', 'channel-sync-for-homey' ); ?></strong>
-										</label>
-										<p class="description"><?php echo esc_html__( 'Enables a dedicated coupon manager, giving administrators the ability to manually generate custom coupon codes and campaign discounts that guests can apply natively at checkout. Note: Since Beds24 does not provide a direct API for promo codes, this engine manages all promo deduction calculations locally on the Homey checkout form.', 'channel-sync-for-homey' ); ?></p>
 									</fieldset>
 								</td>
 							</tr>
