@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.2...v1.1.3) (2026-09-01)
+
+
+### Bug Fixes
+
+* resolve Beds24 rate parsing, calendar toggle double-firing, and pricing leaks ([e8f213b](https://github.com/ejames17/channel-sync-for-homey/commit/e8f213b422cf9548047eb3cabfbea1475c4666e4))
+
 ## [1.1.2](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.1...v1.1.2) (2026-08-31)
 
 
