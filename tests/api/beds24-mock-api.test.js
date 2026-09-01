@@ -82,11 +82,13 @@ test.before(() => {
 						name: 'Mock Apartment Room',
 						calendar: [
 							{
+								date: from,
 								from: from,
 								to: from,
 								price1: 100.00
 							},
 							{
+								date: to,
 								from: to,
 								to: to,
 								price1: 107.00
@@ -200,6 +202,8 @@ test('GET /inventory/rooms/calendar - Valid token and query returns pricing matr
 	
 	const roomData = data.data[0];
 	assert.equal(roomData.roomId, 170328);
+	assert.equal(roomData.calendar[0].date, '2026-09-01');
+	assert.equal(roomData.calendar[1].date, '2026-09-02');
 	assert.equal(roomData.calendar[0].price1, 100);
 	assert.equal(roomData.calendar[1].price1, 107);
 });

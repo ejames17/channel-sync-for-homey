@@ -479,31 +479,58 @@ class Homey_Channel_Sync_Beds24_Adapter implements Homey_Sync_Adapter_Interface 
 			}
 
 			$daily_pricing = array();
-			foreach ( $room_calendar_data as $range ) {
-				if ( ! is_array( $range ) ) {
+
+			// Support both standard enveloped and flat list responses.
+			$rooms = array();
+			if ( isset( $room_calendar_data['data'] ) && is_array( $room_calendar_data['data'] ) ) {
+				$rooms = $room_calendar_data['data'];
+			} elseif ( is_array( $room_calendar_data ) ) {
+				if ( isset( $room_calendar_data[0]['roomId'] ) || isset( $room_calendar_data[0]['calendar'] ) ) {
+					$rooms = $room_calendar_data;
+				} else {
+					// Fallback for a flat array of calendar items (legacy/fallback layout support)
+					$rooms = array( array( 'calendar' => $room_calendar_data ) );
+				}
+			}
+
+			foreach ( $rooms as $room ) {
+				if ( ! is_array( $room ) || ! isset( $room['calendar'] ) || ! is_array( $room['calendar'] ) ) {
 					continue;
 				}
 
-				$from_str = (string) ( $range['from'] ?? '' );
-				$to_str   = (string) ( $range['to'] ?? '' );
-				$price    = (float) ( $range['price1'] ?? $range['price'] ?? 0.0 );
-
-				if ( empty( $from_str ) || empty( $to_str ) || $price <= 0.0 ) {
+				// Only process the calendar for the requested room ID if roomId is set.
+				if ( isset( $room['roomId'] ) && (string) $room['roomId'] !== (string) $room_id ) {
 					continue;
 				}
 
-				try {
-					$start = new DateTime( $from_str );
-					$end   = new DateTime( $to_str );
-
-					// Expand the date range into individual daily pricing items.
-					while ( $start <= $end ) {
-						$date_key                   = $start->format( 'Y-m-d' );
-						$daily_pricing[ $date_key ] = $price;
-						$start->modify( '+1 day' );
+				foreach ( $room['calendar'] as $day_data ) {
+					if ( ! is_array( $day_data ) ) {
+						continue;
 					}
-				} catch ( Exception $e ) {
-					continue;
+
+					// Standard API uses 'date' for daily calendar entries.
+					// We support both 'date' and legacy range keys ('from'/'to') for full backwards-compatibility.
+					$date_str = (string) ( $day_data['date'] ?? $day_data['from'] ?? '' );
+					$to_str   = (string) ( $day_data['to'] ?? $date_str );
+					$price    = (float) ( $day_data['price1'] ?? $day_data['price'] ?? 0.0 );
+
+					if ( empty( $date_str ) || $price <= 0.0 ) {
+						continue;
+					}
+
+					try {
+						$start = new DateTime( $date_str );
+						$end   = new DateTime( $to_str );
+
+						// Expand the date range into individual daily pricing items.
+						while ( $start <= $end ) {
+							$date_key                   = $start->format( 'Y-m-d' );
+							$daily_pricing[ $date_key ] = $price;
+							$start->modify( '+1 day' );
+						}
+					} catch ( Exception $e ) {
+						continue;
+					}
 				}
 			}
 

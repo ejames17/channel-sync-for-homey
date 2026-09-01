@@ -550,11 +550,14 @@ final class Homey_Channel_Sync {
 							// Embed breakdown directly inside #collapseExample details dropdown (Listing details page)
 							var firstPriceItem = $('#collapseExample ul li.homey_price_first, .payment-list-price-detail-note .homey_price_first, li.homey_price_first, .payment-list li.homey_price_first');
 							if (firstPriceItem.length > 0) {
-								$(breakdownHtml).insertAfter(firstPriceItem.first());
-
-								// Format the first item label to remove "(with custom period)" and make it clickable
+								// Format and insert individual breakdown boxes for each matched item
 								firstPriceItem.each(function() {
 									var item = $(this);
+									
+									// Clean up any existing breakdown box specifically for this item
+									item.next('.homey-pms-daily-breakdown-box').remove();
+									$(breakdownHtml).insertAfter(item);
+
 									if (!item.hasClass('pms-formatted')) {
 										item.addClass('pms-formatted');
 										var spanVal = item.find('span').prop('outerHTML') || '';
@@ -564,6 +567,25 @@ final class Homey_Channel_Sync {
 										// Build the toggleable header
 										item.html(cleanLabel + ' <span class="homey-pms-toggle-arrow" style="color:#f15a24; font-size:10px; margin-left:4px;">▼</span>' + spanVal);
 										item.css({ 'cursor': 'pointer', 'user-select': 'none' });
+
+										// Add direct click listener to bypass any propagation block from other scripts
+										item.off('click').on('click', function(e) {
+											e.stopPropagation();
+											e.preventDefault();
+
+											var arrow = item.find('.homey-pms-toggle-arrow');
+											var breakdown = item.next('.homey-pms-daily-breakdown-box');
+
+											if (breakdown.length > 0) {
+												breakdown.slideToggle(200, function() {
+													if (breakdown.is(':visible')) {
+														arrow.text('▲');
+													} else {
+														arrow.text('▼');
+													}
+												});
+											}
+										});
 									}
 								});
 							} else {
@@ -586,18 +608,24 @@ final class Homey_Channel_Sync {
 							return;
 						}
 
-						var priceHeader = $('.item-price');
+						// Target only the main listing's price elements (e.g. active booking sidebar and main listing headers)
+						// This strictly isolates changes to the booking widget/sidebar and main listing title block, preventing any leaks to similar listings or other grids.
+						var priceHeader = $('#homey_booking_cost .item-price, .sidebar-booking-module .item-price, .booking-sidebar .item-price, .single-list-header .item-price, .listing-header-block .item-price, .listing-price-wrap .item-price');
 						if (priceHeader.length === 0) {
 							return;
 						}
 
-						// Save original text once
-						if (!window.originalPriceText) {
-							window.originalPriceText = priceHeader.first().text();
-							window.originalPriceHtml = priceHeader.first().html();
-						}
+						// Save original text and HTML locally on each element to prevent global window state leaks
+						priceHeader.each(function() {
+							var $el = $(this);
+							if (!$el.data('original-text')) {
+								$el.data('original-text', $el.text());
+								$el.data('original-html', $el.html());
+							}
+						});
 
-						var originalText = window.originalPriceText;
+						var firstHeader = priceHeader.first();
+						var originalText = firstHeader.data('original-text') || firstHeader.text();
 						var match = originalText.match(/\$?([0-9.,]+)/);
 						var baseFallbackPrice = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
 
@@ -665,7 +693,9 @@ final class Homey_Channel_Sync {
 									if (nightCount > 0) {
 										var average = totalPrice / nightCount;
 										var dynamicPriceString = currencySymbol + average.toFixed(2) + "/Nightly";
-										priceHeader.html(dynamicPriceString);
+										priceHeader.each(function() {
+											$(this).html(dynamicPriceString);
+										});
 										return;
 									}
 								}
@@ -687,9 +717,17 @@ final class Homey_Channel_Sync {
 
 						var displayPrice = minPrice !== null ? minPrice : baseFallbackPrice;
 						if (displayPrice > 0) {
-							priceHeader.html("From " + currencySymbol + displayPrice.toFixed(2) + "/Nightly");
+							priceHeader.each(function() {
+								$(this).html("From " + currencySymbol + displayPrice.toFixed(2) + "/Nightly");
+							});
 						} else {
-							priceHeader.html(window.originalPriceHtml);
+							priceHeader.each(function() {
+								var $el = $(this);
+								var originalHtml = $el.data('original-html');
+								if (originalHtml) {
+									$el.html(originalHtml);
+								}
+							});
 						}
 
 					} catch (e) {
