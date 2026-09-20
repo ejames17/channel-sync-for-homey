@@ -45,8 +45,8 @@ This plugin connects to Beds24, an external Property Management System (PMS) and
 * **Why it is needed:** These connection requests are necessary to query current rates and availability dates from your Beds24 dashboard and map them directly onto local Homey listing posts.
 
 For more details on how Beds24 handles data and privacy, please review:
-* [Beds24 Terms of Service](https://beds24.com/terms.html)
-* [Beds24 Privacy Policy](https://beds24.com/privacy.html)
+* [Beds24 Terms of Service](https://beds24.com/en/company/eula)
+* [Beds24 Privacy Policy](https://beds24.com/en/company/privacypolicy)
 
 == Installation ==
 
