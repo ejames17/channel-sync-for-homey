@@ -39,14 +39,14 @@ class Homey_Channel_Sync_Cron {
 	 * Registers action hooks, filters, and Ajax listeners.
 	 */
 	public function __construct() {
-		$this->options = get_option( 'homey_channel_sync_options', array() );
+		$this->options = get_option( 'ejames_channel_sync_options', array() );
 
 		// Hook WP-Cron schedules and actions.
 		add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
-		add_action( 'homey_channel_sync_cron_hook', array( $this, 'run_synchronization' ) );
+		add_action( 'ejames_channel_sync_cron_hook', array( $this, 'run_synchronization' ) );
 
 		// Register Manual AJAX execution endpoint.
-		add_action( 'wp_ajax_homey_sync_run_now', array( $this, 'ajax_run_now' ) );
+		add_action( 'wp_ajax_ejames_channel_sync_run_now', array( $this, 'ajax_run_now' ) );
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Homey_Channel_Sync_Cron {
 		if ( ! isset( $schedules['monthly'] ) ) {
 			$schedules['monthly'] = array(
 				'interval' => 30 * DAY_IN_SECONDS,
-				'display'  => esc_html__( 'Once Monthly', 'channel-sync-for-homey' ),
+				'display'  => esc_html__( 'Once Monthly', 'ejames-channel-sync-homey' ),
 			);
 		}
 		return $schedules;
@@ -84,7 +84,7 @@ class Homey_Channel_Sync_Cron {
 			return array(
 				'success' => false,
 				'updated' => 0,
-				'message' => esc_html__( 'Dynamic Price Sync feature is disabled in configuration.', 'channel-sync-for-homey' ),
+				'message' => esc_html__( 'Dynamic Price Sync feature is disabled in configuration.', 'ejames-channel-sync-homey' ),
 			);
 		}
 
@@ -101,7 +101,7 @@ class Homey_Channel_Sync_Cron {
 			return array(
 				'success' => true,
 				'updated' => 0,
-				'message' => esc_html__( 'No Homey listings found to map.', 'channel-sync-for-homey' ),
+				'message' => esc_html__( 'No Homey listings found to map.', 'ejames-channel-sync-homey' ),
 			);
 		}
 
@@ -127,7 +127,7 @@ class Homey_Channel_Sync_Cron {
 			return array(
 				'success' => false,
 				'updated' => 0,
-				'message' => esc_html__( 'No mappings have been configured for listing records.', 'channel-sync-for-homey' ),
+				'message' => esc_html__( 'No mappings have been configured for listing records.', 'ejames-channel-sync-homey' ),
 			);
 		}
 
@@ -144,7 +144,7 @@ class Homey_Channel_Sync_Cron {
 				return array(
 					'success' => false,
 					'updated' => 0,
-					'message' => esc_html__( 'Synchronization aborted: No valid Beds24 access token. Please authenticate in plugin settings.', 'channel-sync-for-homey' ),
+					'message' => esc_html__( 'Synchronization aborted: No valid Beds24 access token. Please authenticate in plugin settings.', 'ejames-channel-sync-homey' ),
 				);
 			}
 		}
@@ -153,7 +153,7 @@ class Homey_Channel_Sync_Cron {
 			return array(
 				'success' => false,
 				'updated' => 0,
-				'message' => esc_html__( 'Selected Channel Manager is currently unavailable.', 'channel-sync-for-homey' ),
+				'message' => esc_html__( 'Selected Channel Manager is currently unavailable.', 'ejames-channel-sync-homey' ),
 			);
 		}
 
@@ -265,17 +265,17 @@ class Homey_Channel_Sync_Cron {
 		);
 
 		// Persist execution log history.
-		$sync_logs = get_option( 'homey_sync_execution_logs', array() );
+		$sync_logs = get_option( 'ejames_sync_execution_logs', array() );
 		array_unshift( $sync_logs, $log_entry );
 		$sync_logs = array_slice( $sync_logs, 0, 10 ); // Maintain only latest 10 runs.
-		update_option( 'homey_sync_execution_logs', $sync_logs );
+		update_option( 'ejames_sync_execution_logs', $sync_logs );
 
 		return array(
 			'success' => true,
 			'updated' => $updated_count,
 			'message' => sprintf(
 				/* translators: 1: Count of records, 2: Elapsed seconds */
-				esc_html__( 'Rates synchronized successfully! Updated %1$d listings in %2$s seconds.', 'channel-sync-for-homey' ),
+				esc_html__( 'Rates synchronized successfully! Updated %1$d listings in %2$s seconds.', 'ejames-channel-sync-homey' ),
 				$updated_count,
 				(string) $time_elapsed
 			),
@@ -286,10 +286,10 @@ class Homey_Channel_Sync_Cron {
 	 * Callback handler for manual force-sync request via AJAX.
 	 */
 	public function ajax_run_now(): void {
-		check_ajax_referer( 'homey_sync_run_now_nonce', 'security' );
+		check_ajax_referer( 'ejames_channel_sync_run_now_nonce', 'security' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized permissions context.', 'channel-sync-for-homey' ) ) );
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized permissions context.', 'ejames-channel-sync-homey' ) ) );
 		}
 
 		$result = $this->run_synchronization();
@@ -300,7 +300,7 @@ class Homey_Channel_Sync_Cron {
 					'message' => $result['message'],
 					'details' => sprintf(
 						/* translators: 1: Record count */
-						esc_html__( 'Database write sequence completed for %d entities.', 'channel-sync-for-homey' ),
+						esc_html__( 'Database write sequence completed for %d entities.', 'ejames-channel-sync-homey' ),
 						$result['updated']
 					),
 				)
@@ -308,7 +308,7 @@ class Homey_Channel_Sync_Cron {
 		} else {
 			wp_send_json_error(
 				array(
-					'message' => esc_html__( 'Rate synchronization failed.', 'channel-sync-for-homey' ),
+					'message' => esc_html__( 'Rate synchronization failed.', 'ejames-channel-sync-homey' ),
 					'error'   => $result['message'],
 				)
 			);

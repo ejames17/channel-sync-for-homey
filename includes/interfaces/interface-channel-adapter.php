@@ -17,27 +17,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 interface Homey_Sync_Adapter_Interface {
 
 	/**
-	 * Test connection to the Channel Manager using provided credentials.
+	 * Retrieve detailed description of the last error.
 	 *
-	 * Performs a remote test call to verify authentication credentials.
+	 * @return string Detailed error description.
+	 */
+	public function get_last_error(): string;
+
+	/**
+	 * Verify that established credentials have active connection privileges.
 	 *
-	 * @param array $credentials Association of credentials (e.g. beds24_api_key, beds24_account_id).
-	 * @return bool True if the connection succeeds, false otherwise.
+	 * @param array $credentials Configured connection credentials.
+	 * @return bool True if connected.
 	 */
 	public function test_connection( array $credentials ): bool;
 
 	/**
-	 * Validate that the credentials array contains all required keys and format is correct.
+	 * Enforce basic requirements check on setting parameters.
 	 *
-	 * @param array $credentials Association of credentials.
-	 * @return bool True if structural checks pass, false otherwise.
+	 * @param array $credentials Configured connection credentials.
+	 * @return bool True if connection formats are valid.
 	 */
 	public function validate_credentials( array $credentials ): bool;
 
 	/**
-	 * Fetch rate information for a list of mapped listings and their external IDs.
+	 * Request and pull daily rate calendars from external providers.
 	 *
-	 * Retrieves pricing records for the external property and room combinations.
+	 * Fetches 365 days of pricing and maps rates into native post definitions.
 	 *
 	 * @param array $room_mappings Array of mappings keyed by local WP Post ID.
 	 * @return array Nested array of dates and daily rates keyed by local listing ID.

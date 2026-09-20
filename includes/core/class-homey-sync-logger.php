@@ -57,7 +57,7 @@ final class Homey_Sync_Logger {
 	 */
 	private function __construct() {
 		$upload_dir    = wp_upload_dir();
-		$this->log_dir = trailingslashit( $upload_dir['basedir'] ) . 'channel-sync-for-homey-logs/';
+		$this->log_dir = trailingslashit( $upload_dir['basedir'] ) . 'ejames-channel-sync-homey-logs/';
 
 		$this->ensure_directory_security();
 		$this->rotate_logs();
@@ -104,7 +104,7 @@ final class Homey_Sync_Logger {
 	 */
 	public function write( string $level, string $message ): void {
 		// Read settings options defensively to check if logging is enabled.
-		$options         = get_option( 'homey_channel_sync_options', array() );
+		$options         = get_option( 'ejames_channel_sync_options', array() );
 		$logging_enabled = $options['enable_debug_log'] ?? '0';
 
 		if ( '1' !== $logging_enabled && 'error' !== strtolower( $level ) ) {
@@ -155,9 +155,9 @@ final class Homey_Sync_Logger {
 	}
 
 	/**
-	 * Retrieve the absolute directory path of our log files.
+	 * Absolute log dir.
 	 *
-	 * @return string Log directory path.
+	 * @return string Log dir.
 	 */
 	public function get_log_directory(): string {
 		return $this->log_dir;
@@ -172,7 +172,7 @@ final class Homey_Sync_Logger {
 		$log_file = $this->log_dir . 'sync-' . current_time( 'Y-m' ) . '.log';
 
 		if ( ! file_exists( $log_file ) ) {
-			return esc_html__( 'No logs recorded yet for this month.', 'channel-sync-for-homey' );
+			return esc_html__( 'No logs recorded yet for this month.', 'ejames-channel-sync-homey' );
 		}
 
 		// Read up to 2MB to prevent out-of-memory.
@@ -183,7 +183,7 @@ final class Homey_Sync_Logger {
 		}
 
 		$data = file_get_contents( $log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
-		return ! empty( $data ) ? $data : esc_html__( 'Active log is empty.', 'channel-sync-for-homey' );
+		return ! empty( $data ) ? $data : esc_html__( 'Active log is empty.', 'ejames-channel-sync-homey' );
 	}
 
 	/**

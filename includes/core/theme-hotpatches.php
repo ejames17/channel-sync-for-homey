@@ -5,7 +5,7 @@
  * Automatically overrides the parent theme's pluggable pricing functions
  * to correct the off-by-one date-shifting bug.
  *
- * @package HomeyChannelSync
+ * @package EjamesChannelSync
  */
 
 declare(strict_types=1);

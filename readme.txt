@@ -1,7 +1,7 @@
-=== Channel Sync for Homey ===
-Contributors: ejames17
+=== ejames Channel Sync for Homey ===
+Contributors: ejames87
 Donate link: https://github.com/ejames17/channel-sync-for-homey
-Tags: homey, sync, beds24, channel-manager, booking, pms
+Tags: homey, sync, beds24, channel-manager, booking
 Requires at least: 6.0
 Requires PHP: 8.0
 Tested up to: 7.1
@@ -13,9 +13,9 @@ Automate your property rates, sync availability, and connect Beds24 & PMS channe
 
 == Description ==
 
-**Homey Channel Sync** is a high-integrity, modular synchronization engine designed to bridge the gap between Favethemes' popular **Homey WordPress Booking Theme** and leading Property Management Systems (PMS) or Channel Managers, starting with **Beds24**.
+**ejames Channel Sync for Homey** is a high-integrity, modular synchronization engine designed to bridge the gap between Favethemes' popular **Homey WordPress Booking Theme** and leading Property Management Systems (PMS) or Channel Managers, starting with **Beds24**.
 
-For vacation rental owners, boutique hotels, and multi-property managers, manual price updates are a thing of the past. Homey Channel Sync automatically fetches your latest daily pricing structures from Beds24 and overlays them right on your front-end calendar grids, ensures checkout breakdown transparency, and syncs nightly base rate defaults in the background.
+For vacation rental owners, boutique hotels, and multi-property managers, manual price updates are a thing of the past. ejames Channel Sync for Homey automatically fetches your latest daily pricing structures from Beds24 and overlays them right on your front-end calendar grids, ensures checkout breakdown transparency, and syncs nightly base rate defaults in the background.
 
 Have a bug to report or a feature request? Please submit it to our [Public GitHub Repository](https://github.com/ejames17/channel-sync-for-homey/issues).
 
@@ -36,9 +36,21 @@ Help shape our development by voting on what we build next:
 * **Manual Force Trigger:** Execute instant, real-time rate synchronizations on-demand with a visual ajax progress indicator.
 * **Developer Friendly & Modular:** Extensible, driver-based adapter design ready for future channel managers and WordPress themes.
 
+== External Services ==
+
+This plugin connects to Beds24, an external Property Management System (PMS) and channel manager, to retrieve pricing, availability, and configuration rules.
+
+* **What data is sent:** To authenticate and query, the plugin transmits credentials (including dynamic OAuth access/refresh tokens, API Invite Codes, or permanent long-life access tokens), Property IDs, and Room IDs. No guest, personal, or transaction data is sent.
+* **When is it sent:** Data is sent when setting up or verifying the connection in the WordPress admin panel, during manual rate synchronization triggers, and automatically via scheduled WP-Cron background operations.
+* **Why it is needed:** These connection requests are necessary to query current rates and availability dates from your Beds24 dashboard and map them directly onto local Homey listing posts.
+
+For more details on how Beds24 handles data and privacy, please review:
+* [Beds24 Terms of Service](https://beds24.com/terms.html)
+* [Beds24 Privacy Policy](https://beds24.com/privacy.html)
+
 == Installation ==
 
-1. Upload the plugin folder `channel-sync-for-homey` to the `/wp-content/plugins/` directory, or upload the zip file directly via the WordPress Admin dashboard under `Plugins > Add New`.
+1. Upload the plugin folder `ejames-channel-sync-homey` to the `/wp-content/plugins/` directory, or upload the zip file directly via the WordPress Admin dashboard under `Plugins > Add New`.
 2. Activate the plugin.
 3. Navigate to **Homey > Channel Sync** (or Settings > Channel Sync) in your WordPress Admin sidebar.
 4. Input your Beds24 credentials (invite code or permanent long-life token) and select your active channel.
