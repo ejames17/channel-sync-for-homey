@@ -4,8 +4,35 @@
  */
 
 define('WP_USE_THEMES', false);
-// Boot WordPress
-require_once __DIR__ . '/../../../../wp-load.php';
+// Boot WordPress (robust against symlinks)
+$cwd = getcwd();
+$wp_load_path = null;
+
+$dir = __DIR__;
+while ( $dir !== dirname( $dir ) ) {
+	if ( file_exists( $dir . '/wp-load.php' ) ) {
+		$wp_load_path = $dir . '/wp-load.php';
+		break;
+	}
+	$dir = dirname( $dir );
+}
+
+if ( ! $wp_load_path && $cwd ) {
+	$dir = $cwd;
+	while ( $dir !== dirname( $dir ) ) {
+		if ( file_exists( $dir . '/wp-load.php' ) ) {
+			$wp_load_path = $dir . '/wp-load.php';
+			break;
+		}
+		$dir = dirname( $dir );
+	}
+}
+
+if ( ! $wp_load_path ) {
+	$wp_load_path = __DIR__ . '/../../../../wp-load.php';
+}
+
+require_once $wp_load_path;
 
 echo "=== Running Channel Sync Plugin Sanity Checks ===\n";
 
@@ -107,7 +134,7 @@ wp_delete_post($mock_listing_empty, true);
 // ----------------------------------------------------
 // Sanity Check 4: Verify frontend overlay script supports empty booking type
 // ----------------------------------------------------
-$plugin_code = file_get_contents(__DIR__ . '/../channel-sync-for-homey.php');
+$plugin_code = file_get_contents(__DIR__ . '/../ejames-channel-sync-homey.php');
 
 assert_test(
 	strpos($plugin_code, "activeBookingType && activeBookingType !== 'per_day' && activeBookingType !== 'per_day_date'") !== false,

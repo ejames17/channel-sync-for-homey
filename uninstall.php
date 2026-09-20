@@ -74,16 +74,19 @@ if ( ! empty( $listings ) ) {
 }
 
 // 2. Delete options stored in wp_options table.
-delete_option( 'homey_channel_sync_options' );
+delete_option( 'ejames_channel_sync_options' );
+delete_option( 'homey_channel_sync_options' ); // Keep legacy clean backup
 delete_option( 'homey_channel_sync_settings' );
+delete_option( 'ejames_sync_execution_logs' );
 delete_option( 'homey_sync_execution_logs' );
 
 // 3. Delete cached transient records.
+delete_transient( 'ejames_sync_pms_inventory' );
 delete_transient( 'homey_sync_pms_inventory' );
 
 // 4. Clear scheduled background WP-Cron tasks.
-$next_cron_timestamp = wp_next_scheduled( 'homey_channel_sync_cron_hook' );
+$next_cron_timestamp = wp_next_scheduled( 'ejames_channel_sync_cron_hook' );
 if ( false !== $next_cron_timestamp ) {
-	wp_unschedule_event( $next_cron_timestamp, 'homey_channel_sync_cron_hook' );
+	wp_unschedule_event( $next_cron_timestamp, 'ejames_channel_sync_cron_hook' );
 }
-wp_clear_scheduled_hook( 'homey_channel_sync_cron_hook' );
+wp_clear_scheduled_hook( 'ejames_channel_sync_cron_hook' );
