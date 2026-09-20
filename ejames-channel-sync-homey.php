@@ -619,10 +619,10 @@ final class Homey_Channel_Sync {
 
 						// Save original text and HTML locally on each element to prevent global window state leaks
 						priceHeader.each(function() {
-							var $el = $(this);
-							if (!$el.data('original-text')) {
-								$el.data('original-text', $el.text());
-								$el.data('original-html', $el.html());
+							var el = $(this);
+							if (!el.data('original-text')) {
+								el.data('original-text', el.text());
+								el.data('original-html', el.html());
 							}
 						});
 
@@ -724,10 +724,10 @@ final class Homey_Channel_Sync {
 							});
 						} else {
 							priceHeader.each(function() {
-								var $el = $(this);
-								var originalHtml = $el.data('original-html');
+								var el = $(this);
+								var originalHtml = el.data('original-html');
 								if (originalHtml) {
-									$el.html(originalHtml);
+									el.html(originalHtml);
 								}
 							});
 						}
