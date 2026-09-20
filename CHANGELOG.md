@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.3...v1.1.4) (2026-09-20)
+
+
+### Bug Fixes
+
+* **frontend:** resolve PHP undefined variable warning for front-end JS selector variables ([cf1bcba](https://github.com/ejames17/channel-sync-for-homey/commit/cf1bcbaa9adb80ecb8384aa2cc246982d1e09265))
+
 ## [1.1.3](https://github.com/ejames17/channel-sync-for-homey/compare/v1.1.2...v1.1.3) (2026-09-01)
 
 
